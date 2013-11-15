@@ -6,7 +6,6 @@ package butter.protocol;
  * Date: 13-11-15
  * Time: 下午12:11
  */
-public abstract class Reply
-{
+public abstract class Reply {
 
 }

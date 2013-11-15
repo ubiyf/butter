@@ -20,31 +20,26 @@ import io.netty.handler.codec.Delimiters;
  * Date: 13-11-14
  * Time: 下午8:09
  */
-public class RedisClient
-{
+public class RedisClient {
     private final String host;
     private final int port;
     private Bootstrap bootstrap;
 
-    public RedisClient(String host, int port)
-    {
+    public RedisClient(String host, int port) {
         this.host = host;
         this.port = port;
     }
 
-    public void init() throws Exception
-    {
+    public void init() throws Exception {
         // Configure the client.
         final EventLoopGroup group = new NioEventLoopGroup();
         bootstrap = new Bootstrap();
         bootstrap.group(group)
                 .channel(NioSocketChannel.class)
                 .option(ChannelOption.TCP_NODELAY, true)
-                .handler(new ChannelInitializer<SocketChannel>()
-                {
+                .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
-                    public void initChannel(SocketChannel ch) throws Exception
-                    {
+                    public void initChannel(SocketChannel ch) throws Exception {
                         ch.pipeline().addLast(
                                 //new LoggingHandler(LogLevel.INFO),
                                 new CommandEncoder(),
@@ -54,14 +49,12 @@ public class RedisClient
                 });
     }
 
-    public RedisConnection connect() throws InterruptedException
-    {
+    public RedisConnection connect() throws InterruptedException {
         ChannelFuture f = bootstrap.connect(host, port).sync();
         return new RedisConnection(f.channel());
     }
 
-    public void shutdown()
-    {
+    public void shutdown() {
         bootstrap.group().shutdownGracefully();
     }
 }

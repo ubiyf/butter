@@ -15,18 +15,14 @@ import java.util.List;
  * Date: 13-11-14
  * Time: 下午8:21
  */
-public class ReplyDecoder extends ByteToMessageDecoder
-{
+public class ReplyDecoder extends ByteToMessageDecoder {
     private STATE state = STATE.PREFIX;
 
     @Override
-    protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf frame, List<Object> objects) throws Exception
-    {
-        switch (state)
-        {
+    protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf frame, List<Object> objects) throws Exception {
+        switch (state) {
             case PREFIX:
-                switch (frame.readByte())
-                {
+                switch (frame.readByte()) {
                     case '+':
                         state = STATE.STATUS;
                         break;
@@ -45,8 +41,7 @@ public class ReplyDecoder extends ByteToMessageDecoder
                     default:
                         throw new RedisDecodeException("Invalid first byte");
                 }
-            case STATUS:
-            {
+            case STATUS: {
                 byte[] statusData = new byte[frame.readableBytes()];
                 frame.writeBytes(statusData);
                 String status = new String(statusData);
@@ -54,8 +49,7 @@ public class ReplyDecoder extends ByteToMessageDecoder
                 objects.add(reply);
                 break;
             }
-            case ERROR:
-            {
+            case ERROR: {
                 byte[] errorData = new byte[frame.readableBytes()];
                 frame.writeBytes(errorData);
                 String status = new String(errorData);
@@ -63,8 +57,7 @@ public class ReplyDecoder extends ByteToMessageDecoder
                 objects.add(reply);
                 break;
             }
-            case INTEGER:
-            {
+            case INTEGER: {
                 byte[] integerData = new byte[frame.readableBytes()];
                 frame.writeBytes(integerData);
                 String integer = new String(integerData);
@@ -83,13 +76,11 @@ public class ReplyDecoder extends ByteToMessageDecoder
         resetState();
     }
 
-    private void resetState()
-    {
+    private void resetState() {
         state = STATE.PREFIX;
     }
 
-    enum STATE
-    {
+    enum STATE {
         PREFIX,
         STATUS,
         ERROR,

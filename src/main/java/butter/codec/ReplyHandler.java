@@ -10,11 +10,9 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
  * Date: 13-11-15
  * Time: 下午5:22
  */
-public class ReplyHandler extends ChannelInboundHandlerAdapter
-{
+public class ReplyHandler extends ChannelInboundHandlerAdapter {
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception
-    {
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         Reply reply = (Reply) msg;
 
 

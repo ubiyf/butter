@@ -11,11 +11,9 @@ import io.netty.handler.codec.MessageToByteEncoder;
  * Date: 13-11-14
  * Time: 下午8:14
  */
-public class CommandEncoder extends MessageToByteEncoder<Command>
-{
+public class CommandEncoder extends MessageToByteEncoder<Command> {
     @Override
-    protected void encode(ChannelHandlerContext channelHandlerContext, Command command, ByteBuf out) throws Exception
-    {
+    protected void encode(ChannelHandlerContext channelHandlerContext, Command command, ByteBuf out) throws Exception {
         out.writeBytes(command.encode());
     }
 }

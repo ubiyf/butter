@@ -8,17 +8,14 @@ import butter.protocol.Reply;
  * Date: 13-11-15
  * Time: 下午1:45
  */
-public class ErrorReply extends Reply
-{
+public class ErrorReply extends Reply {
     private final String error;
 
-    public ErrorReply(String error)
-    {
+    public ErrorReply(String error) {
         this.error = error;
     }
 
-    public String getError()
-    {
+    public String getError() {
         return error;
     }
 }

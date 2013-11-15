@@ -8,17 +8,14 @@ import butter.protocol.Reply;
  * Date: 13-11-15
  * Time: 下午1:49
  */
-public class IntegerReply extends Reply
-{
+public class IntegerReply extends Reply {
     private final long integer;
 
-    public IntegerReply(long integer)
-    {
+    public IntegerReply(long integer) {
         this.integer = integer;
     }
 
-    public long getInteger()
-    {
+    public long getInteger() {
         return integer;
     }
 }

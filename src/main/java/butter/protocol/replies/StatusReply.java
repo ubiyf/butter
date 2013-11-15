@@ -8,17 +8,14 @@ import butter.protocol.Reply;
  * Date: 13-11-15
  * Time: 下午1:40
  */
-public class StatusReply extends Reply
-{
+public class StatusReply extends Reply {
     private final String status;
 
-    public StatusReply(String status)
-    {
+    public StatusReply(String status) {
         this.status = status;
     }
 
-    public String getStatus()
-    {
+    public String getStatus() {
         return status;
     }
 }
