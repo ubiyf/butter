@@ -1,4 +1,4 @@
-package butter.codec;
+package butter.exception;
 
 /**
  * Created with IntelliJ IDEA.

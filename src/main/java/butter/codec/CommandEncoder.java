@@ -4,6 +4,9 @@ import butter.protocol.Command;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
+import java.util.Queue;
+
+import static butter.codec.Attribute.CMD_QUEUE;
 
 /**
  * Created with IntelliJ IDEA.
@@ -12,8 +15,11 @@ import io.netty.handler.codec.MessageToByteEncoder;
  * Time: 下午8:14
  */
 public class CommandEncoder extends MessageToByteEncoder<Command> {
+    @SuppressWarnings("unchecked")
     @Override
-    protected void encode(ChannelHandlerContext channelHandlerContext, Command command, ByteBuf out) throws Exception {
+    protected void encode(ChannelHandlerContext ctx, Command command, ByteBuf out) throws Exception {
+        Queue<Command> cmdQueue = ctx.channel().attr(CMD_QUEUE).get();
+        cmdQueue.offer(command);
         out.writeBytes(command.encode());
     }
 }

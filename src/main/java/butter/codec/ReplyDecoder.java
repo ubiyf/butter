@@ -1,5 +1,6 @@
 package butter.codec;
 
+import butter.exception.RedisDecodeException;
 import butter.protocol.Reply;
 import butter.protocol.replies.IntegerReply;
 import butter.protocol.replies.StatusReply;
@@ -7,6 +8,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 
+import java.nio.charset.Charset;
 import java.util.List;
 
 /**
@@ -43,8 +45,8 @@ public class ReplyDecoder extends ByteToMessageDecoder {
                 }
             case STATUS: {
                 byte[] statusData = new byte[frame.readableBytes()];
-                frame.writeBytes(statusData);
-                String status = new String(statusData);
+                frame.readBytes(statusData);
+                String status = new String(statusData, Charset.forName("US-ASCII"));
                 Reply reply = new StatusReply(status);
                 objects.add(reply);
                 break;

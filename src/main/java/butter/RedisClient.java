@@ -2,17 +2,17 @@ package butter;
 
 import butter.codec.CommandEncoder;
 import butter.codec.ReplyDecoder;
+import butter.codec.ReplyHandler;
 import butter.connection.RedisConnection;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.DelimiterBasedFrameDecoder;
-import io.netty.handler.codec.Delimiters;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 
 /**
  * Created with IntelliJ IDEA.
@@ -41,17 +41,19 @@ public class RedisClient {
                     @Override
                     public void initChannel(SocketChannel ch) throws Exception {
                         ch.pipeline().addLast(
-                                //new LoggingHandler(LogLevel.INFO),
+                                new LoggingHandler(LogLevel.INFO),
                                 new CommandEncoder(),
-                                new DelimiterBasedFrameDecoder(512 * 1024 * 1024, Delimiters.lineDelimiter()),
-                                new ReplyDecoder());
+                                new DelimiterBasedFrameDecoder(512 * 1024 * 1024, Unpooled.wrappedBuffer(new byte[]{'\r', '\n'})),
+                                new ReplyDecoder(),
+                                new ReplyHandler()
+                        );
                     }
                 });
     }
 
     public RedisConnection connect() throws InterruptedException {
-        ChannelFuture f = bootstrap.connect(host, port).sync();
-        return new RedisConnection(f.channel());
+        Channel channel = bootstrap.connect(host, port).sync().channel();
+        return new RedisConnection(channel);
     }
 
     public void shutdown() {
