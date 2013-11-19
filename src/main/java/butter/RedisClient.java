@@ -3,16 +3,18 @@ package butter;
 import butter.codec.CommandEncoder;
 import butter.codec.ReplyDecoder;
 import butter.codec.ReplyHandler;
-import butter.connection.RedisConnection;
+import butter.connection.AsyncConnection;
+import butter.connection.SyncConnection;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.DelimiterBasedFrameDecoder;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 
 /**
  * Created with IntelliJ IDEA.
@@ -41,7 +43,7 @@ public class RedisClient {
                     @Override
                     public void initChannel(SocketChannel ch) throws Exception {
                         ch.pipeline().addLast(
-                                new LoggingHandler(LogLevel.INFO),
+//                                new LoggingHandler(LogLevel.INFO),
                                 new CommandEncoder(),
                                 new DelimiterBasedFrameDecoder(512 * 1024 * 1024, Unpooled.wrappedBuffer(new byte[]{'\r', '\n'})),
                                 new ReplyDecoder(),
@@ -51,9 +53,14 @@ public class RedisClient {
                 });
     }
 
-    public RedisConnection connect() throws InterruptedException {
+    public SyncConnection getSyncConnection() throws InterruptedException {
         Channel channel = bootstrap.connect(host, port).sync().channel();
-        return new RedisConnection(channel);
+        return new SyncConnection(channel);
+    }
+
+    public AsyncConnection getAsyncConnection() throws InterruptedException {
+        Channel channel = bootstrap.connect(host, port).sync().channel();
+        return new AsyncConnection(channel);
     }
 
     public void shutdown() {

@@ -2,6 +2,7 @@ package butter.codec;
 
 import butter.exception.RedisDecodeException;
 import butter.protocol.Reply;
+import butter.protocol.replies.ErrorReply;
 import butter.protocol.replies.IntegerReply;
 import butter.protocol.replies.StatusReply;
 import io.netty.buffer.ByteBuf;
@@ -22,6 +23,9 @@ public class ReplyDecoder extends ByteToMessageDecoder {
 
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf frame, List<Object> objects) throws Exception {
+        if (!frame.isReadable())
+            return;
+
         switch (state) {
             case PREFIX:
                 switch (frame.readByte()) {
@@ -55,7 +59,7 @@ public class ReplyDecoder extends ByteToMessageDecoder {
                 byte[] errorData = new byte[frame.readableBytes()];
                 frame.writeBytes(errorData);
                 String status = new String(errorData);
-                Reply reply = new StatusReply(status);
+                Reply reply = new ErrorReply(status);
                 objects.add(reply);
                 break;
             }

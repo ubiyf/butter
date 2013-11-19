@@ -1,6 +1,6 @@
 package butter;
 
-import butter.connection.RedisConnection;
+import butter.connection.SyncConnection;
 import org.junit.Test;
 
 /**
@@ -19,14 +19,14 @@ public class RedisClientTest {
     public void testRedisClient() throws Exception {
         RedisClient client = new RedisClient(HOST, PORT);
         client.init();
-        RedisConnection connection = client.connect();
+        SyncConnection connection = client.getSyncConnection();
         connection.set(KEY.getBytes(), VALUE.getBytes());
     }
 
-    public static void main(String[] args) throws Exception {
-        RedisClient client = new RedisClient(HOST, PORT);
-        client.init();
-        RedisConnection connection = client.connect();
-        connection.set(KEY.getBytes(), VALUE.getBytes());
-    }
+//    public static void main(String[] args) throws Exception {
+//        RedisClient client = new RedisClient(HOST, PORT);
+//        client.init();
+//        SyncConnection connection = client.getSyncConnection();
+//        connection.set(KEY.getBytes(), VALUE.getBytes());
+//    }
 }

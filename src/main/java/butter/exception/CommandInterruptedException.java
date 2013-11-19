@@ -15,4 +15,8 @@ public class CommandInterruptedException extends RuntimeException {
     public CommandInterruptedException(String message, Throwable cause) {
         super(message, cause);
     }
+
+    public CommandInterruptedException(Throwable cause) {
+        super(cause);
+    }
 }

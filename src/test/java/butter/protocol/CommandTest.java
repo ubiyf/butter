@@ -1,5 +1,7 @@
 package butter.protocol;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.junit.Test;
 
 /**
@@ -16,6 +18,7 @@ public class CommandTest {
         cmd.addArg("SET".getBytes());
         cmd.addArg("mykey".getBytes());
         cmd.addArg("myvalue".getBytes());
-        cmd.encode();
+        ByteBuf buf = Unpooled.buffer();
+        cmd.encode(buf);
     }
 }

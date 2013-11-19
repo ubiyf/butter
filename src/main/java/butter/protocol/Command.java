@@ -1,13 +1,14 @@
 package butter.protocol;
 
 import butter.exception.CommandInterruptedException;
+import butter.exception.CommandTimeoutException;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created with IntelliJ IDEA.
@@ -15,19 +16,74 @@ import java.util.concurrent.CountDownLatch;
  * Date: 13-11-14
  * Time: 下午8:17
  */
-public class Command {
-    private static final byte[] CRLF = "\r\n".getBytes(Charset.forName("US-ASCII"));
+public class Command<T extends Reply> implements Future<T> {
+    private static final byte[] CRLF = "\r\n".getBytes(Charsets.ASCII);
 
     private List<byte[]> args = new ArrayList<byte[]>();
-    private Reply reply;
-    private CountDownLatch countDownLatch = new CountDownLatch(1);
+    private CountDownLatch latch = new CountDownLatch(1);
+    private T reply;
 
     public void addArg(byte[] arg) {
         args.add(arg);
     }
 
-    public byte[] encode() {
-        ByteBuf buf = Unpooled.buffer();
+    @Override
+    public boolean cancel(boolean mayInterruptIfRunning) {
+        if (mayInterruptIfRunning) {
+            throw new IllegalArgumentException("once committed, redis command can not be canceled");
+        }
+        boolean isCanceled = false;
+        if (latch.getCount() == 1) {
+            latch.countDown();
+            reply = null;
+            isCanceled = true;
+        }
+        return isCanceled;
+    }
+
+    @Override
+    public boolean isCancelled() {
+        return latch.getCount() == 0 && reply == null;
+    }
+
+    @Override
+    public boolean isDone() {
+        return latch.getCount() == 0;
+    }
+
+    @Override
+    public T get() {
+        try {
+            latch.await();
+            return reply;
+        } catch (InterruptedException e) {
+            throw new CommandInterruptedException(e);
+        }
+    }
+
+    @Override
+    public T get(long timeout, TimeUnit unit) {
+        try {
+            if (!latch.await(timeout, unit)) {
+                throw new CommandTimeoutException("Command timed out");
+            }
+        } catch (InterruptedException e) {
+            throw new CommandInterruptedException(e);
+        }
+        return reply;
+    }
+
+    public T getReply() {
+        return get();
+    }
+
+    public void setReply(T reply) {
+        this.reply = reply;
+        latch.countDown();
+    }
+
+    public void encode(ByteBuf buf) {
+        buf.clear();
         buf.writeByte('*');
         write(buf, args.size());
         buf.writeBytes(CRLF);
@@ -38,39 +94,45 @@ public class Command {
             buf.writeBytes(arg);
             buf.writeBytes(CRLF);
         }
-        byte[] data = new byte[buf.readableBytes()];
-        buf.getBytes(0, data);
-        return data;
     }
 
-    private void write(ByteBuf buf, long value) {
+    /**
+     * 将数字以char字符形式写入buffer
+     *
+     * @param buf
+     * @param value max number: 512 * 1024 * 1024
+     */
+    private void write(ByteBuf buf, int value) {
+        if (value < 0) {
+            throw new IllegalArgumentException("value must be positive.");
+        }
+
+        if (value > 512 * 1024 * 1204) {
+            throw new IllegalArgumentException("data length can not larger than 512MB.");
+        }
+
         if (value < 10) {
             buf.writeByte((byte) ('0' + value));
             return;
         }
 
-        StringBuilder sb = new StringBuilder(8);
-        while (value > 0) {
+        int valueLen = stringSize(value);
+        buf.writeZero(valueLen);
+        int writeIdx = buf.writerIndex();
+        for (int i = 0; i < valueLen; i++) {
             long digit = value % 10;
-            sb.append((char) ('0' + digit));
-            value /= 10;
-        }
-
-        for (int i = sb.length() - 1; i >= 0; i--) {
-            buf.writeByte((byte) sb.charAt(i));
-        }
-    }
-    public Reply getReply() {
-        try {
-            countDownLatch.await();
-            return reply;
-        } catch (InterruptedException e) {
-            throw new CommandInterruptedException("interrupted when get replay", e);
+            buf.setByte(writeIdx - i - 1, (byte) ('0' + digit));
+            value = value / 10;
         }
     }
 
-    public void setReply(Reply reply) {
-        this.reply = reply;
-        countDownLatch.countDown();
+    private final static int[] SIZE_TABLE = {9, 99, 999, 9999, 99999, 999999, 9999999,
+            99999999, 999999999, Integer.MAX_VALUE};
+
+    // Requires positive x
+    private static int stringSize(int x) {
+        for (int i = 0; ; i++)
+            if (x <= SIZE_TABLE[i])
+                return i + 1;
     }
 }
