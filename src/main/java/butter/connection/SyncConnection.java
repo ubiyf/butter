@@ -19,16 +19,14 @@ public class SyncConnection extends Connection {
     }
 
     public void set(byte[] key, byte[] value) {
-        Command<StatusReply> set = new Command<StatusReply>();
+        Command<StatusReply> set = Command.create();
         set.addArg(Commands.SET.bytes);
         set.addArg(key);
         set.addArg(value);
         channel.writeAndFlush(set);
-        StatusReply status = set.getReply();
+        StatusReply status = set.get();
         if (!status.getStatus().equals("OK")) {
             throw new RedisException("set error");
         }
     }
-
-
 }

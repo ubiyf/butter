@@ -20,7 +20,7 @@ public class AsyncConnection extends Connection {
     }
 
     public Future<StatusReply> set(byte[] key, byte[] value) {
-        Command<StatusReply> set = new Command<StatusReply>();
+        Command<StatusReply> set = Command.create();
         set.addArg(Commands.SET.bytes);
         set.addArg(key);
         set.addArg(value);

@@ -28,7 +28,7 @@ public class ReplyHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         Reply reply = (Reply) msg;
         Queue<Command> cmdQueue = ctx.channel().attr(CMD_QUEUE).get();
-        cmdQueue.poll().setReply(reply);
+        cmdQueue.poll().set(reply);
     }
 
     @Override

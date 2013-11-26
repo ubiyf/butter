@@ -1,14 +1,15 @@
 package butter.protocol;
 
 import butter.exception.CommandInterruptedException;
-import butter.exception.CommandTimeoutException;
+import com.google.common.util.concurrent.AbstractFuture;
 import io.netty.buffer.ByteBuf;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Future;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Created with IntelliJ IDEA.
@@ -16,70 +17,51 @@ import java.util.concurrent.TimeUnit;
  * Date: 13-11-14
  * Time: 下午8:17
  */
-public class Command<T extends Reply> implements Future<T> {
+public class Command<T extends Reply> extends AbstractFuture<T> {
     private static final byte[] CRLF = "\r\n".getBytes(Charsets.ASCII);
+    private List<byte[]> args = new ArrayList<>();
 
-    private List<byte[]> args = new ArrayList<byte[]>();
-    private CountDownLatch latch = new CountDownLatch(1);
-    private T reply;
-
-    public void addArg(byte[] arg) {
-        args.add(arg);
+    public static <T extends Reply> Command<T> create() {
+        return new Command<>();
     }
 
-    @Override
-    public boolean cancel(boolean mayInterruptIfRunning) {
-        if (mayInterruptIfRunning) {
-            throw new IllegalArgumentException("once committed, redis command can not be canceled");
-        }
-        boolean isCanceled = false;
-        if (latch.getCount() == 1) {
-            latch.countDown();
-            reply = null;
-            isCanceled = true;
-        }
-        return isCanceled;
-    }
-
-    @Override
-    public boolean isCancelled() {
-        return latch.getCount() == 0 && reply == null;
-    }
-
-    @Override
-    public boolean isDone() {
-        return latch.getCount() == 0;
+    private Command() {
     }
 
     @Override
     public T get() {
+        T value;
         try {
-            latch.await();
-            return reply;
-        } catch (InterruptedException e) {
+            value = super.get();
+        } catch (InterruptedException | ExecutionException e) {
             throw new CommandInterruptedException(e);
         }
+        return value;
     }
 
     @Override
-    public T get(long timeout, TimeUnit unit) {
+    public T get(long timeout, TimeUnit unit) throws TimeoutException {
+        T value;
         try {
-            if (!latch.await(timeout, unit)) {
-                throw new CommandTimeoutException("Command timed out");
-            }
-        } catch (InterruptedException e) {
+            value = super.get(timeout, unit);
+        } catch (InterruptedException | ExecutionException e) {
             throw new CommandInterruptedException(e);
         }
-        return reply;
+        return value;
     }
 
-    public T getReply() {
-        return get();
+    @Override
+    public boolean set(@Nullable T value) {
+        return super.set(value);
     }
 
-    public void setReply(T reply) {
-        this.reply = reply;
-        latch.countDown();
+    @Override
+    public boolean setException(Throwable throwable) {
+        return super.setException(throwable);
+    }
+
+    public void addArg(byte[] arg) {
+        args.add(arg);
     }
 
     public void encode(ByteBuf buf) {

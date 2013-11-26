@@ -1,5 +1,6 @@
 package butter.protocol;
 
+import butter.protocol.replies.StatusReply;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.junit.Test;
@@ -14,11 +15,11 @@ public class CommandTest {
 
     @Test
     public void testEncode() {
-        Command cmd = new Command();
-        cmd.addArg("SET".getBytes());
-        cmd.addArg("mykey".getBytes());
-        cmd.addArg("myvalue".getBytes());
+        Command<StatusReply> set = Command.create();
+        set.addArg("SET".getBytes());
+        set.addArg("mykey".getBytes());
+        set.addArg("myvalue".getBytes());
         ByteBuf buf = Unpooled.buffer();
-        cmd.encode(buf);
+        set.encode(buf);
     }
 }
