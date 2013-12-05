@@ -3,6 +3,7 @@ package butter.connection;
 import butter.protocol.Command;
 import butter.protocol.Commands;
 import butter.protocol.replies.StatusReply;
+import com.google.common.util.concurrent.ListenableFuture;
 import io.netty.channel.Channel;
 
 import java.util.concurrent.Future;
@@ -19,7 +20,7 @@ public class AsyncConnection extends Connection {
         super(channel);
     }
 
-    public Future<StatusReply> set(byte[] key, byte[] value) {
+    public ListenableFuture<StatusReply> set(byte[] key, byte[] value) {
         Command<StatusReply> set = Command.create();
         set.addArg(Commands.SET.bytes);
         set.addArg(key);
