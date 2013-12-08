@@ -6,8 +6,6 @@ import butter.protocol.replies.StatusReply;
 import com.google.common.util.concurrent.ListenableFuture;
 import io.netty.channel.Channel;
 
-import java.util.concurrent.Future;
-
 /**
  * Created with IntelliJ IDEA.
  * User: Lizhongyuan
@@ -18,6 +16,13 @@ public class AsyncConnection extends Connection {
 
     public AsyncConnection(Channel channel) {
         super(channel);
+    }
+
+    public ListenableFuture<StatusReply> ping() {
+        Command<StatusReply> ping = Command.create();
+        ping.addArg(Commands.PING.bytes);
+        channel.writeAndFlush(ping);
+        return ping;
     }
 
     public ListenableFuture<StatusReply> set(byte[] key, byte[] value) {

@@ -1,8 +1,9 @@
 package butter.codec;
 
 import butter.exception.RedisDecodeException;
+import butter.exception.RedisException;
+import butter.protocol.Command;
 import butter.protocol.Reply;
-import butter.protocol.replies.ErrorReply;
 import butter.protocol.replies.IntegerReply;
 import butter.protocol.replies.StatusReply;
 import io.netty.buffer.ByteBuf;
@@ -11,6 +12,9 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 
 import java.nio.charset.Charset;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+import static butter.codec.Attribute.CMD_QUEUE;
 
 /**
  * Created with IntelliJ IDEA.
@@ -20,7 +24,15 @@ import java.util.List;
  */
 public class ReplyDecoder extends ByteToMessageDecoder {
     private STATE state = STATE.PREFIX;
+    private ConcurrentLinkedQueue<Command> cmdQueue;
 
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        cmdQueue = new ConcurrentLinkedQueue<>();
+        ctx.channel().attr(CMD_QUEUE).set(cmdQueue);
+    }
+
+    @SuppressWarnings("unchecked")
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf frame, List<Object> objects) throws Exception {
         if (!frame.isReadable())
@@ -52,15 +64,14 @@ public class ReplyDecoder extends ByteToMessageDecoder {
                 frame.readBytes(statusData);
                 String status = new String(statusData, Charset.forName("US-ASCII"));
                 Reply reply = new StatusReply(status);
-                objects.add(reply);
+                cmdQueue.poll().set(reply);
                 break;
             }
             case ERROR: {
                 byte[] errorData = new byte[frame.readableBytes()];
                 frame.writeBytes(errorData);
-                String status = new String(errorData);
-                Reply reply = new ErrorReply(status);
-                objects.add(reply);
+                String error = new String(errorData, Charset.forName("US-ASCII"));
+                cmdQueue.poll().setException(new RedisException(error));
                 break;
             }
             case INTEGER: {
@@ -68,7 +79,7 @@ public class ReplyDecoder extends ByteToMessageDecoder {
                 frame.writeBytes(integerData);
                 String integer = new String(integerData);
                 Reply reply = new IntegerReply(Long.parseLong(integer));
-                objects.add(reply);
+                cmdQueue.poll().set(reply);
                 break;
             }
             case BULK:

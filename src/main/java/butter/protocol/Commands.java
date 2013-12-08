@@ -7,6 +7,7 @@ package butter.protocol;
  * Time: 下午2:01
  */
 public enum Commands {
+    PING,
     SET;
 
     public final byte[] bytes;

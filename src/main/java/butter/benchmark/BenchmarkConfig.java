@@ -15,6 +15,7 @@ public class BenchmarkConfig {
     private static final int DEFAULT_REQUESTS = 10000;
     private static final int DEFAULT_DATA_SIZE = 2;
     private static final String[] DEFAULT_TESTS = {"PING", "SET", "GET", "INCR"};
+    private static final WorkMode DEFAULT_WORK_MODE = WorkMode.ASYNC;
 
     private int port;
     private String host;
@@ -22,6 +23,7 @@ public class BenchmarkConfig {
     private int requests;
     private int dataSize;
     private String[] tests;
+    private WorkMode mode;
 
     public BenchmarkConfig() {
         this.port = DEFAULT_PORT;
@@ -30,6 +32,7 @@ public class BenchmarkConfig {
         this.requests = DEFAULT_REQUESTS;
         this.dataSize = DEFAULT_DATA_SIZE;
         this.tests = DEFAULT_TESTS;
+        this.mode = DEFAULT_WORK_MODE;
     }
 
     public int getPort() {
@@ -37,6 +40,9 @@ public class BenchmarkConfig {
     }
 
     public void setPort(int port) {
+        if (port <= 0) {
+            throw new IllegalArgumentException("invalid port number.");
+        }
         this.port = port;
     }
 
@@ -45,6 +51,9 @@ public class BenchmarkConfig {
     }
 
     public void setHost(String host) {
+        if (host == null) {
+            throw new IllegalArgumentException("host can not be null.");
+        }
         this.host = host;
     }
 
@@ -53,6 +62,9 @@ public class BenchmarkConfig {
     }
 
     public void setConnections(int connections) {
+        if (connections <= 0) {
+            throw new IllegalArgumentException("connection number must be positive.");
+        }
         this.connections = connections;
     }
 
@@ -78,6 +90,14 @@ public class BenchmarkConfig {
 
     public void setTests(String[] tests) {
         this.tests = tests;
+    }
+
+    public WorkMode getMode() {
+        return mode;
+    }
+
+    public void setMode(WorkMode mode) {
+        this.mode = mode;
     }
 
     @Override

@@ -1,5 +1,11 @@
 package butter.benchmark;
 
+import butter.RedisClient;
+import butter.connection.AsyncConnection;
+import butter.connection.SyncConnection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Created with IntelliJ IDEA.
  * User: Lizhongyuan
@@ -8,9 +14,106 @@ package butter.benchmark;
  */
 public class Benchmark {
 
+    private static Logger logger = LoggerFactory.getLogger(Benchmark.class);
+    private BenchmarkConfig config;
+
+
+    public Benchmark(BenchmarkConfig config) {
+        this.config = config;
+    }
+
+    public void start() {
+        RedisClient client = new RedisClient(config.getHost(), config.getPort());
+        switch (config.getMode()) {
+            case ASYNC:
+                startAsyncBenchmark(client);
+                break;
+            case SYNC:
+                startSyncBenchmark(client);
+                break;
+            case BOTH:
+                break;
+        }
+    }
+
+    private void startSyncBenchmark(RedisClient client) {
+        //TODO sync benchmark
+    }
+
+    private void startAsyncBenchmark(RedisClient client) {
+        try {
+            AsyncConnection[] asyncConnections = initAsyncConnections(client, config);
+        } catch (InterruptedException e) {
+            logger.error("benchmark failed!", e);
+            return;
+        }
+
+
+    }
+
+    private AsyncConnection[] initAsyncConnections(RedisClient client, BenchmarkConfig config) throws InterruptedException {
+        int connectionNum = config.getConnections();
+        AsyncConnection[] asyncConnections = new AsyncConnection[connectionNum];
+        for (int i = 0; i < connectionNum; i++) {
+            asyncConnections[i] = client.getAsyncConnection();
+        }
+        return asyncConnections;
+    }
+
+    private SyncConnection[] initSyncConnections(RedisClient client, BenchmarkConfig config) throws InterruptedException {
+        int connectionNum = config.getConnections();
+        SyncConnection[] syncConnections = new SyncConnection[connectionNum];
+        for (int i = 0; i < connectionNum; i++) {
+            syncConnections[i] = client.getSyncConnection();
+        }
+        return syncConnections;
+    }
+
+    //    final int TRY_TIMES = 10000;
+    //    final AtomicInteger counter = new AtomicInteger();
+    //    final CountDownLatch latch = new CountDownLatch(1);
+    //    ExecutorService fixedExecuter = Executors.newSingleThreadExecutor();
+    //    RedisClient client = new RedisClient(HOST, PORT);
+    //    client.init();
+    //    AsyncConnection connection = client.getAsyncConnection();
+    //    long start = System.currentTimeMillis();
+    //    for (int i = 0; i < TRY_TIMES; i++) {
+    //        ListenableFuture<StatusReply> replyFuture = connection.set(KEY.getBytes(), VALUE.getBytes());
+    //        Futures.addCallback(replyFuture, new FutureCallback<StatusReply>() {
+    //            @Override
+    //            public void onSuccess(@Nullable StatusReply result) {
+    //                int count = counter.incrementAndGet();
+    //                if(count == TRY_TIMES) {
+    //                    latch.countDown();
+    //                }
+    //            }
+    //
+    //            @Override
+    //            public void onFailure(Throwable t) {
+    //                t.printStackTrace();
+    //            }
+    //        }, fixedExecuter);
+    //    }
+    //
+    //    latch.await();
+    //    long end = System.currentTimeMillis();
+    //    System.out.println(end - start);
+    //    connection.close();
+    //    client.shutdown();
+    //    fixedExecuter.shutdown();
+
     public static void main(String[] args) throws Exception {
-        BenchmarkConfig config = parseConfig(args);
-        System.out.printf(config.toString());
+
+        BenchmarkConfig config;
+        try {
+            config = parseConfig(args);
+        } catch (Exception e) {
+            showUsage();
+            throw e;
+        }
+
+        Benchmark benchmark = new Benchmark(config);
+        benchmark.start();
     }
 
     private static BenchmarkConfig parseConfig(String[] args) {
@@ -81,37 +184,4 @@ public class Benchmark {
                         "   $ redis-benchmark -r 10000 -n 10000 lpush mylist ele:rand:000000000000"
         );
     }
-
-//    final int TRY_TIMES = 10000;
-//    final AtomicInteger counter = new AtomicInteger();
-//    final CountDownLatch latch = new CountDownLatch(1);
-//    ExecutorService fixedExecuter = Executors.newSingleThreadExecutor();
-//    RedisClient client = new RedisClient(HOST, PORT);
-//    client.init();
-//    AsyncConnection connection = client.getAsyncConnection();
-//    long start = System.currentTimeMillis();
-//    for (int i = 0; i < TRY_TIMES; i++) {
-//        ListenableFuture<StatusReply> replyFuture = connection.set(KEY.getBytes(), VALUE.getBytes());
-//        Futures.addCallback(replyFuture, new FutureCallback<StatusReply>() {
-//            @Override
-//            public void onSuccess(@Nullable StatusReply result) {
-//                int count = counter.incrementAndGet();
-//                if(count == TRY_TIMES) {
-//                    latch.countDown();
-//                }
-//            }
-//
-//            @Override
-//            public void onFailure(Throwable t) {
-//                t.printStackTrace();
-//            }
-//        }, fixedExecuter);
-//    }
-//
-//    latch.await();
-//    long end = System.currentTimeMillis();
-//    System.out.println(end - start);
-//    connection.close();
-//    client.shutdown();
-//    fixedExecuter.shutdown();
 }

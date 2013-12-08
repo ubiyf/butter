@@ -18,6 +18,14 @@ public class SyncConnection extends Connection {
         super(channel);
     }
 
+    public void ping() {
+        Command<StatusReply> ping = Command.create();
+        ping.addArg(Commands.PING.bytes);
+        channel.writeAndFlush(ping);
+        StatusReply status = ping.get();
+        //TODO 等待ReplyDecoder重构完成
+    }
+
     public void set(byte[] key, byte[] value) {
         Command<StatusReply> set = Command.create();
         set.addArg(Commands.SET.bytes);

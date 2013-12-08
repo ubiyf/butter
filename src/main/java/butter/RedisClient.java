@@ -2,7 +2,6 @@ package butter;
 
 import butter.codec.CommandEncoder;
 import butter.codec.ReplyDecoder;
-import butter.codec.ReplyHandler;
 import butter.connection.AsyncConnection;
 import butter.connection.SyncConnection;
 import io.netty.bootstrap.Bootstrap;
@@ -46,8 +45,7 @@ public class RedisClient {
 //                                new LoggingHandler(LogLevel.INFO),
                                 new CommandEncoder(),
                                 new DelimiterBasedFrameDecoder(512 * 1024 * 1024, Unpooled.wrappedBuffer(new byte[]{'\r', '\n'})),
-                                new ReplyDecoder(),
-                                new ReplyHandler()
+                                new ReplyDecoder()
                         );
                     }
                 });

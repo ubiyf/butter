@@ -57,6 +57,13 @@ public class ListenableFutureTest {
         future.set(100);
     }
 
+    @Test
+    public void testSettableFutureException() throws Exception {
+        SettableFuture<Integer> future = SettableFuture.create();
+        Futures.addCallback(future, new CallbackPrinter<Integer>());
+        Thread.sleep(1000);
+        future.setException(new RuntimeException("normalException!"));
+    }
 
     class Task1 implements Callable<Integer> {
 
