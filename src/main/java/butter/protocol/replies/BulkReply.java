@@ -9,4 +9,13 @@ import butter.protocol.Reply;
  * Time: 下午5:55
  */
 public class BulkReply extends Reply {
+    private final byte[] data;
+
+    public BulkReply(byte[] data) {
+        this.data = data;
+    }
+
+    public byte[] getData() {
+        return data;
+    }
 }

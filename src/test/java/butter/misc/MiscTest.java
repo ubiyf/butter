@@ -106,4 +106,11 @@ public class MiscTest {
         System.out.println(end - start);
         Assert.assertTrue((end - start) < 150);
     }
+
+    @Test
+    public void testTooLongStringParseToInt() {
+//        Integer.parseInt("9999999999999");
+        System.out.println(-Integer.MIN_VALUE * 10);
+        System.out.println(-Integer.MAX_VALUE * 10);
+    }
 }

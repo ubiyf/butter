@@ -4,6 +4,7 @@ import butter.exception.RedisDecodeException;
 import butter.exception.RedisException;
 import butter.protocol.Command;
 import butter.protocol.Reply;
+import butter.protocol.replies.BulkReply;
 import butter.protocol.replies.IntegerReply;
 import butter.protocol.replies.StatusReply;
 import io.netty.buffer.ByteBuf;
@@ -77,20 +78,77 @@ public class ReplyDecoder extends ByteToMessageDecoder {
             case INTEGER: {
                 byte[] integerData = new byte[frame.readableBytes()];
                 frame.writeBytes(integerData);
-                String integer = new String(integerData);
-                Reply reply = new IntegerReply(Long.parseLong(integer));
+                Reply reply = new IntegerReply(bytesToLong(integerData));
                 cmdQueue.poll().set(reply);
                 break;
             }
-            case BULK:
+            case BULK: {
+                if (objects.size() == 0) {
+                    byte[] integerData = new byte[frame.readableBytes()];
+                    frame.writeBytes(integerData);
+                    objects.add(bytesToInt(integerData));
+                    return;
+                } else {
+                    int dataLength = (int) objects.get(0);
+                    byte[] data = new byte[dataLength];
+                    frame.writeBytes(data);
+                    Reply reply = new BulkReply(data);
+                    cmdQueue.poll().set(reply);
+                }
+                break;
+            }
+            case MULTI_BULK: {
 
                 break;
-            case MULTI_BULK:
-
-                break;
+            }
         }
 
         resetState();
+    }
+
+    /**
+     * only for positive int
+     *
+     * @param b
+     */
+    private int bytesToInt(byte[] b) {
+        if (b == null || b.length <= 0)
+            return 0;
+        int result = 0;
+        byte byteZero = '0';
+        int mulMax = Integer.MAX_VALUE / 10;
+        for (int i = 0; i < b.length; i++) {
+            if (result > mulMax) {
+                throw new NumberFormatException("For input data:" + new String(b) + "!");
+            }
+            result *= 10;
+            int digit = b[i] - byteZero;
+            if (result > Integer.MAX_VALUE - digit) {
+                throw new NumberFormatException("For input data:" + new String(b) + "!");
+            }
+            result += digit;
+        }
+        return result;
+    }
+
+    private long bytesToLong(byte[] b) {
+        if (b == null || b.length <= 0)
+            return 0;
+        long result = 0;
+        byte byteZero = '0';
+        long mulMax = Long.MAX_VALUE / 10;
+        for (int i = 0; i < b.length; i++) {
+            if (result > mulMax) {
+                throw new NumberFormatException("For input data:" + new String(b) + "!");
+            }
+            result *= 10;
+            int digit = b[i] - byteZero;
+            if (result > Long.MAX_VALUE - digit) {
+                throw new NumberFormatException("For input data:" + new String(b) + "!");
+            }
+            result += digit;
+        }
+        return result;
     }
 
     private void resetState() {
