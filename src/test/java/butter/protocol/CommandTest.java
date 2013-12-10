@@ -15,7 +15,7 @@ public class CommandTest {
 
     @Test
     public void testEncode() {
-        Command<StatusReply> set = Command.create();
+        Command<StatusReply> set = Command.create(StatusReply.class);
         set.addArg("SET".getBytes());
         set.addArg("mykey".getBytes());
         set.addArg("myvalue".getBytes());

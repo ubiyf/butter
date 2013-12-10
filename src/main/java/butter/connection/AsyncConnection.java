@@ -19,14 +19,14 @@ public class AsyncConnection extends Connection {
     }
 
     public ListenableFuture<StatusReply> ping() {
-        Command<StatusReply> ping = Command.create();
+        Command<StatusReply> ping = Command.create(StatusReply.class);
         ping.addArg(Commands.PING.bytes);
         channel.writeAndFlush(ping);
         return ping;
     }
 
     public ListenableFuture<StatusReply> set(byte[] key, byte[] value) {
-        Command<StatusReply> set = Command.create();
+        Command<StatusReply> set = Command.create(StatusReply.class);
         set.addArg(Commands.SET.bytes);
         set.addArg(key);
         set.addArg(value);

@@ -1,5 +1,8 @@
 package butter.protocol.replies;
 
+import javax.annotation.Nullable;
+import java.util.List;
+
 /**
  * Created with IntelliJ IDEA.
  * User: Lizhongyuan
@@ -7,4 +10,13 @@ package butter.protocol.replies;
  * Time: 下午5:57
  */
 public class MultiBulkReply {
+    private final List<Object> dataList;
+
+    public MultiBulkReply(@Nullable List<Object> dataList) {
+        this.dataList = dataList;
+    }
+
+    public List<Object> getDataList() {
+        return dataList;
+    }
 }

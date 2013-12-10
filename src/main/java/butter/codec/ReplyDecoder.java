@@ -3,15 +3,16 @@ package butter.codec;
 import butter.exception.RedisDecodeException;
 import butter.exception.RedisException;
 import butter.protocol.Command;
-import butter.protocol.Reply;
 import butter.protocol.replies.BulkReply;
 import butter.protocol.replies.IntegerReply;
+import butter.protocol.replies.MultiBulkReply;
 import butter.protocol.replies.StatusReply;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -26,6 +27,8 @@ import static butter.codec.Attribute.CMD_QUEUE;
 public class ReplyDecoder extends ByteToMessageDecoder {
     private STATE state = STATE.PREFIX;
     private ConcurrentLinkedQueue<Command> cmdQueue;
+    private STATE bulkState;
+    private List<Object> multiBulkReplies;
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
@@ -33,126 +36,212 @@ public class ReplyDecoder extends ByteToMessageDecoder {
         ctx.channel().attr(CMD_QUEUE).set(cmdQueue);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf frame, List<Object> objects) throws Exception {
         if (!frame.isReadable())
             return;
 
+        if (decoder(frame, objects))
+            resetState();
+    }
+
+    /**
+     * @return if decode is finished
+     */
+    @SuppressWarnings("unchecked")
+    private boolean decoder(ByteBuf frame, List<Object> tmpObjects) {
+        int originTmpNum = tmpObjects.size();
+        char firstChar;
         switch (state) {
             case PREFIX:
-                switch (frame.readByte()) {
-                    case '+':
+                firstChar = (char) frame.readByte();
+                switch (firstChar) {
+                    case '+': {
                         state = STATE.STATUS;
+                        String status = parseStringData(frame);
+                        StatusReply reply = new StatusReply(status);
+                        cmdQueue.poll().set(reply);
                         break;
-                    case '-':
+                    }
+                    case '-': {
                         state = STATE.ERROR;
+                        String error = parseStringData(frame);
+                        cmdQueue.poll().setException(new RedisException(error));
                         break;
-                    case ':':
+                    }
+                    case ':': {
                         state = STATE.INTEGER;
+                        long number = parseNumberData(frame);
+                        IntegerReply reply = new IntegerReply(number);
+                        cmdQueue.poll().set(reply);
                         break;
-                    case '$':
+                    }
+                    case '$': {
                         state = STATE.BULK;
+                        long dataLen = parseNumberData(frame);
+                        if (dataLen > 0) {
+                            tmpObjects.add(dataLen);
+                        } else {
+                            BulkReply reply = new BulkReply(null);
+                            cmdQueue.poll().set(reply);
+                        }
                         break;
-                    case '*':
+                    }
+                    case '*': {
                         state = STATE.MULTI_BULK;
+                        long replyNum = parseNumberData(frame);
+                        if (replyNum > 0) {
+                            tmpObjects.add(replyNum);
+                            multiBulkReplies = new ArrayList<>((int) replyNum);
+                            bulkState = STATE.PREFIX;
+                        } else {
+                            MultiBulkReply reply = new MultiBulkReply(null);
+                            cmdQueue.poll().set(reply);
+                        }
                         break;
+                    }
                     default:
-                        throw new RedisDecodeException("Invalid first byte");
+                        throw new RedisDecodeException("Invalid first byte: " + firstChar);
                 }
-            case STATUS: {
-                byte[] statusData = new byte[frame.readableBytes()];
-                frame.readBytes(statusData);
-                String status = new String(statusData, Charset.forName("US-ASCII"));
-                Reply reply = new StatusReply(status);
-                cmdQueue.poll().set(reply);
                 break;
-            }
-            case ERROR: {
-                byte[] errorData = new byte[frame.readableBytes()];
-                frame.writeBytes(errorData);
-                String error = new String(errorData, Charset.forName("US-ASCII"));
-                cmdQueue.poll().setException(new RedisException(error));
-                break;
-            }
-            case INTEGER: {
-                byte[] integerData = new byte[frame.readableBytes()];
-                frame.writeBytes(integerData);
-                Reply reply = new IntegerReply(bytesToLong(integerData));
-                cmdQueue.poll().set(reply);
-                break;
-            }
             case BULK: {
-                if (objects.size() == 0) {
-                    byte[] integerData = new byte[frame.readableBytes()];
-                    frame.writeBytes(integerData);
-                    objects.add(bytesToInt(integerData));
-                    return;
-                } else {
-                    int dataLength = (int) objects.get(0);
-                    byte[] data = new byte[dataLength];
-                    frame.writeBytes(data);
-                    Reply reply = new BulkReply(data);
-                    cmdQueue.poll().set(reply);
-                }
+                int dataLength = (int) tmpObjects.get(0);
+                byte[] data = new byte[dataLength];
+                frame.writeBytes(data);
+                BulkReply reply = new BulkReply(data);
+                cmdQueue.poll().set(reply);
                 break;
             }
             case MULTI_BULK: {
 
                 break;
             }
+            default:
+                throw new RedisDecodeException("should not be here!");
         }
 
-        resetState();
+        return originTmpNum == tmpObjects.size();
+    }
+
+    private boolean multiBulkDecoder(ByteBuf frame, int total) {
+        char firstChar = (char) frame.readByte();
+        switch (bulkState) {
+            case PREFIX:
+                switch (firstChar) {
+                    case '+': {
+                        bulkState = STATE.STATUS;
+                        String status = parseStringData(frame);
+                        multiBulkReplies.add(status);
+                        break;
+                    }
+                    case ':': {
+                        state = STATE.INTEGER;
+                        long number = parseNumberData(frame);
+                        multiBulkReplies.add(number);
+                        break;
+                    }
+                    case '$': {
+                        bulkState = STATE.BULK;
+                        long dataLen = parseNumberData(frame);
+                        if (dataLen > 0) {
+                            tmpObjects.add(dataLen);
+                        } else {
+                            multiBulkReplies.add(null);
+                        }
+                        break;
+                    }
+                    case '*': {
+                        break;
+                    }
+                    default:
+                        throw new RedisDecodeException("Invalid first byte: " + firstChar);
+                }
+                break;
+            case BULK:
+
+                break;
+            case MULTI_BULK:
+                break;
+        }
+
+
+        return multiBulkReplies.size() == total;
+    }
+
+    private String parseStringData(ByteBuf frame) {
+        byte[] stringData = new byte[frame.readableBytes()];
+        frame.readBytes(stringData);
+        return new String(stringData, Charset.forName("US-ASCII"));
+    }
+
+    private long parseNumberData(ByteBuf frame) {
+        byte[] integerData = new byte[frame.readableBytes()];
+        frame.writeBytes(integerData);
+        return bytesToLong(integerData);
     }
 
     /**
-     * only for positive int
+     * only for positive long
      *
      * @param b
      */
-    private int bytesToInt(byte[] b) {
-        if (b == null || b.length <= 0)
-            return 0;
-        int result = 0;
-        byte byteZero = '0';
-        int mulMax = Integer.MAX_VALUE / 10;
-        for (int i = 0; i < b.length; i++) {
-            if (result > mulMax) {
-                throw new NumberFormatException("For input data:" + new String(b) + "!");
-            }
-            result *= 10;
-            int digit = b[i] - byteZero;
-            if (result > Integer.MAX_VALUE - digit) {
-                throw new NumberFormatException("For input data:" + new String(b) + "!");
-            }
-            result += digit;
-        }
-        return result;
-    }
-
     private long bytesToLong(byte[] b) {
-        if (b == null || b.length <= 0)
-            return 0;
-        long result = 0;
-        byte byteZero = '0';
-        long mulMax = Long.MAX_VALUE / 10;
-        for (int i = 0; i < b.length; i++) {
-            if (result > mulMax) {
-                throw new NumberFormatException("For input data:" + new String(b) + "!");
-            }
-            result *= 10;
-            int digit = b[i] - byteZero;
-            if (result > Long.MAX_VALUE - digit) {
-                throw new NumberFormatException("For input data:" + new String(b) + "!");
-            }
-            result += digit;
+        if (b == null) {
+            throw new NumberFormatException("null");
         }
-        return result;
+
+        if (b.length == 0) {
+            throw new NumberFormatException("zero length data");
+        }
+
+        int radix = 10;
+        long result = 0;
+        boolean negative = false;
+        int i = 0, len = b.length;
+        long limit = -Long.MAX_VALUE;
+        long multmin;
+        int digit;
+
+        if (len > 0) {
+            char firstChar = (char) b[0];
+            if (firstChar < '0') { // Possible leading "+" or "-"
+                if (firstChar == '-') {
+                    negative = true;
+                    limit = Long.MIN_VALUE;
+                } else if (firstChar != '+') {
+                    throw new NumberFormatException("For input string: \"" + new String(b) + "\"");
+                }
+
+                if (len == 1) {// Cannot have lone "+" or "-"
+                    throw new NumberFormatException("For input string: \"" + new String(b) + "\"");
+                }
+                i++;
+            }
+            multmin = limit / radix;
+            while (i < len) {
+                // Accumulating negatively avoids surprises near MAX_VALUE
+                digit = Character.digit((char) b[i++], radix);
+                if (digit < 0) {
+                    throw new NumberFormatException("For input string: \"" + new String(b) + "\"");
+                }
+                if (result < multmin) {
+                    throw new NumberFormatException("For input string: \"" + new String(b) + "\"");
+                }
+                result *= radix;
+                if (result < limit + digit) {
+                    throw new NumberFormatException("For input string: \"" + new String(b) + "\"");
+                }
+                result -= digit;
+            }
+        } else {
+            throw new NumberFormatException("For input string: \"" + new String(b) + "\"");
+        }
+        return negative ? result : -result;
     }
 
     private void resetState() {
         state = STATE.PREFIX;
+        bulkState = null;
     }
 
     enum STATE {

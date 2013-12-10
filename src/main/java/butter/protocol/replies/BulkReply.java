@@ -1,6 +1,6 @@
 package butter.protocol.replies;
 
-import butter.protocol.Reply;
+import javax.annotation.Nullable;
 
 /**
  * Created with IntelliJ IDEA.
@@ -8,10 +8,10 @@ import butter.protocol.Reply;
  * Date: 13-11-19
  * Time: 下午5:55
  */
-public class BulkReply extends Reply {
+public class BulkReply {
     private final byte[] data;
 
-    public BulkReply(byte[] data) {
+    public BulkReply(@Nullable byte[] data) {
         this.data = data;
     }
 

@@ -19,7 +19,7 @@ public class SyncConnection extends Connection {
     }
 
     public void ping() {
-        Command<StatusReply> ping = Command.create();
+        Command<StatusReply> ping = Command.create(StatusReply.class);
         ping.addArg(Commands.PING.bytes);
         channel.writeAndFlush(ping);
         StatusReply status = ping.get();
@@ -27,7 +27,7 @@ public class SyncConnection extends Connection {
     }
 
     public void set(byte[] key, byte[] value) {
-        Command<StatusReply> set = Command.create();
+        Command<StatusReply> set = Command.create(StatusReply.class);
         set.addArg(Commands.SET.bytes);
         set.addArg(key);
         set.addArg(value);

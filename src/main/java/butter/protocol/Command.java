@@ -1,6 +1,7 @@
 package butter.protocol;
 
 import butter.exception.CommandInterruptedException;
+import butter.exception.RedisException;
 import com.google.common.util.concurrent.AbstractFuture;
 import io.netty.buffer.ByteBuf;
 
@@ -17,15 +18,20 @@ import java.util.concurrent.TimeoutException;
  * Date: 13-11-14
  * Time: 下午8:17
  */
-public class Command<T extends Reply> extends AbstractFuture<T> {
+public class Command<T> extends AbstractFuture<T> {
     private static final byte[] CRLF = "\r\n".getBytes(Charsets.ASCII);
     private List<byte[]> args = new ArrayList<>();
+    private Class<T> type;
 
-    public static <T extends Reply> Command<T> create() {
-        return new Command<>();
+    public static <T> Command<T> create(Class<T> type) {
+        return new Command<>(type);
     }
 
     private Command() {
+    }
+
+    private Command(Class<T> type) {
+        this.type = type;
     }
 
     @Override
@@ -52,7 +58,12 @@ public class Command<T extends Reply> extends AbstractFuture<T> {
 
     @Override
     public boolean set(@Nullable T value) {
-        return super.set(value);
+        if (!type.isInstance(value)) {
+            setException(new RedisException("wrong type reply, expected " + type + " got " + value.getClass()));
+            return false;
+        } else {
+            return super.set(value);
+        }
     }
 
     @Override
