@@ -3,10 +3,6 @@ package butter.codec;
 import butter.exception.RedisDecodeException;
 import butter.exception.RedisException;
 import butter.protocol.Command;
-import butter.protocol.replies.BulkReply;
-import butter.protocol.replies.IntegerReply;
-import butter.protocol.replies.MultiBulkReply;
-import butter.protocol.replies.StatusReply;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
@@ -14,6 +10,7 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static butter.codec.Attribute.CMD_QUEUE;
@@ -27,8 +24,7 @@ import static butter.codec.Attribute.CMD_QUEUE;
 public class ReplyDecoder extends ByteToMessageDecoder {
     private STATE state = STATE.PREFIX;
     private ConcurrentLinkedQueue<Command> cmdQueue;
-    private STATE bulkState;
-    private List<Object> multiBulkReplies;
+    private Stack<MultiBulkState> multiBulkStates = new Stack<>();
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
@@ -41,62 +37,55 @@ public class ReplyDecoder extends ByteToMessageDecoder {
         if (!frame.isReadable())
             return;
 
-        if (decoder(frame, objects))
-            resetState();
+        final boolean needMoreFrames = true;
+        if (!decoder(frame)) {
+            objects.add(needMoreFrames);
+        }
     }
 
     /**
      * @return if decode is finished
      */
     @SuppressWarnings("unchecked")
-    private boolean decoder(ByteBuf frame, List<Object> tmpObjects) {
-        int originTmpNum = tmpObjects.size();
-        char firstChar;
+    private boolean decoder(ByteBuf frame) {
         switch (state) {
             case PREFIX:
-                firstChar = (char) frame.readByte();
+                char firstChar = (char) frame.readByte();
                 switch (firstChar) {
                     case '+': {
-                        state = STATE.STATUS;
                         String status = parseStringData(frame);
-                        StatusReply reply = new StatusReply(status);
-                        cmdQueue.poll().set(reply);
+                        cmdQueue.poll().set(status);
                         break;
                     }
                     case '-': {
-                        state = STATE.ERROR;
                         String error = parseStringData(frame);
                         cmdQueue.poll().setException(new RedisException(error));
                         break;
                     }
                     case ':': {
-                        state = STATE.INTEGER;
                         long number = parseNumberData(frame);
-                        IntegerReply reply = new IntegerReply(number);
-                        cmdQueue.poll().set(reply);
+                        cmdQueue.poll().set(number);
                         break;
                     }
                     case '$': {
-                        state = STATE.BULK;
                         long dataLen = parseNumberData(frame);
                         if (dataLen > 0) {
-                            tmpObjects.add(dataLen);
+                            state = STATE.BULK;
+                            return false;
                         } else {
-                            BulkReply reply = new BulkReply(null);
-                            cmdQueue.poll().set(reply);
+                            cmdQueue.poll().set(null);
                         }
                         break;
                     }
                     case '*': {
-                        state = STATE.MULTI_BULK;
                         long replyNum = parseNumberData(frame);
                         if (replyNum > 0) {
-                            tmpObjects.add(replyNum);
-                            multiBulkReplies = new ArrayList<>((int) replyNum);
-                            bulkState = STATE.PREFIX;
+                            state = STATE.MULTI_BULK;
+                            MultiBulkState mbs = new MultiBulkState((int) replyNum);
+                            multiBulkStates.push(mbs);
+                            return false;
                         } else {
-                            MultiBulkReply reply = new MultiBulkReply(null);
-                            cmdQueue.poll().set(reply);
+                            cmdQueue.poll().set(null);
                         }
                         break;
                     }
@@ -105,52 +94,63 @@ public class ReplyDecoder extends ByteToMessageDecoder {
                 }
                 break;
             case BULK: {
-                int dataLength = (int) tmpObjects.get(0);
-                byte[] data = new byte[dataLength];
-                frame.writeBytes(data);
-                BulkReply reply = new BulkReply(data);
-                cmdQueue.poll().set(reply);
+                byte[] data = new byte[frame.readableBytes()];
+                frame.readBytes(data);
+                cmdQueue.poll().set(data);
+                state = STATE.PREFIX;
                 break;
             }
             case MULTI_BULK: {
-
+                if (multiBulkDecoder(frame)) {
+                    MultiBulkState mbs = multiBulkStates.pop();
+                    cmdQueue.poll().set(mbs.getReplies());
+                    state = STATE.PREFIX;
+                } else {
+                    return false;
+                }
                 break;
             }
             default:
                 throw new RedisDecodeException("should not be here!");
         }
 
-        return originTmpNum == tmpObjects.size();
+        return true;
     }
 
-    private boolean multiBulkDecoder(ByteBuf frame, int total) {
-        char firstChar = (char) frame.readByte();
-        switch (bulkState) {
+    private boolean multiBulkDecoder(ByteBuf frame) {
+        MultiBulkState curState = multiBulkStates.peek();
+        switch (curState.getState()) {
             case PREFIX:
+                char firstChar = (char) frame.readByte();
                 switch (firstChar) {
                     case '+': {
-                        bulkState = STATE.STATUS;
                         String status = parseStringData(frame);
-                        multiBulkReplies.add(status);
+                        curState.getReplies().add(status);
                         break;
                     }
                     case ':': {
-                        state = STATE.INTEGER;
                         long number = parseNumberData(frame);
-                        multiBulkReplies.add(number);
+                        curState.getReplies().add(number);
                         break;
                     }
                     case '$': {
-                        bulkState = STATE.BULK;
                         long dataLen = parseNumberData(frame);
                         if (dataLen > 0) {
-                            tmpObjects.add(dataLen);
+                            curState.setState(STATE.BULK);
                         } else {
-                            multiBulkReplies.add(null);
+                            curState.getReplies().add(null);
                         }
                         break;
                     }
                     case '*': {
+                        long replyNum = parseNumberData(frame);
+                        if (replyNum > 0) {
+                            curState.setState(STATE.MULTI_BULK);
+                            MultiBulkState mbs = new MultiBulkState((int) replyNum);
+                            multiBulkStates.push(mbs);
+                        } else {
+                            curState.getReplies().add(null);
+                        }
                         break;
                     }
                     default:
@@ -158,14 +158,21 @@ public class ReplyDecoder extends ByteToMessageDecoder {
                 }
                 break;
             case BULK:
-
+                byte[] data = new byte[frame.readableBytes()];
+                frame.readBytes(data);
+                curState.getReplies().add(data);
+                curState.setState(STATE.PREFIX);
                 break;
             case MULTI_BULK:
+                if (multiBulkDecoder(frame)) {
+                    MultiBulkState innerState = multiBulkStates.pop();
+                    curState.getReplies().add(innerState.getReplies());
+                    curState.setState(STATE.PREFIX);
+                }
                 break;
         }
 
-
-        return multiBulkReplies.size() == total;
+        return curState.isDecodeFinished();
     }
 
     private String parseStringData(ByteBuf frame) {
@@ -176,7 +183,7 @@ public class ReplyDecoder extends ByteToMessageDecoder {
 
     private long parseNumberData(ByteBuf frame) {
         byte[] integerData = new byte[frame.readableBytes()];
-        frame.writeBytes(integerData);
+        frame.readBytes(integerData);
         return bytesToLong(integerData);
     }
 
@@ -241,7 +248,6 @@ public class ReplyDecoder extends ByteToMessageDecoder {
 
     private void resetState() {
         state = STATE.PREFIX;
-        bulkState = null;
     }
 
     enum STATE {
@@ -251,5 +257,36 @@ public class ReplyDecoder extends ByteToMessageDecoder {
         INTEGER,
         BULK,
         MULTI_BULK
+    }
+
+    class MultiBulkState {
+        private STATE state = STATE.PREFIX;
+        private List<Object> replies;
+        private int replyNum;
+
+        MultiBulkState(int replyNum) {
+            this.replyNum = replyNum;
+            replies = new ArrayList<>(replyNum);
+        }
+
+        public STATE getState() {
+            return state;
+        }
+
+        public void setState(STATE state) {
+            this.state = state;
+        }
+
+        public List<Object> getReplies() {
+            return replies;
+        }
+
+        public void setReplies(List<Object> replies) {
+            this.replies = replies;
+        }
+
+        public boolean isDecodeFinished() {
+            return replyNum == replies.size();
+        }
     }
 }

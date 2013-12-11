@@ -1,9 +1,5 @@
 package butter.connection;
 
-import butter.exception.RedisException;
-import butter.protocol.Command;
-import butter.protocol.Commands;
-import butter.protocol.replies.StatusReply;
 import io.netty.channel.Channel;
 
 /**
@@ -12,29 +8,40 @@ import io.netty.channel.Channel;
  * Date: 13-11-15
  * Time: 下午2:15
  */
-public class SyncConnection extends Connection {
+public class SyncConnection {
+    private final AsyncConnection async;
 
     public SyncConnection(Channel channel) {
-        super(channel);
+        this.async = new AsyncConnection(channel);
     }
 
-    public void ping() {
-        Command<StatusReply> ping = Command.create(StatusReply.class);
-        ping.addArg(Commands.PING.bytes);
-        channel.writeAndFlush(ping);
-        StatusReply status = ping.get();
-        //TODO 等待ReplyDecoder重构完成
+    //region Keys
+    public long del(byte[]... keys) {
+        return async.del(keys).get();
     }
 
+    public byte[] dump(byte[] key) {
+        return async.dump(key).get();
+    }
+
+    public void restore(byte[] key, long ttl, byte[] serialized) {
+        async.restore(key, ttl, serialized);
+    }
+    //endregion
+
+    //region Strings
     public void set(byte[] key, byte[] value) {
-        Command<StatusReply> set = Command.create(StatusReply.class);
-        set.addArg(Commands.SET.bytes);
-        set.addArg(key);
-        set.addArg(value);
-        channel.writeAndFlush(set);
-        StatusReply status = set.get();
-        if (!status.getStatus().equals("OK")) {
-            throw new RedisException("set error");
-        }
+        async.set(key, value).get();
     }
+
+    public byte[] get(byte[] key) {
+        return async.get(key).get();
+    }
+    //endregion
+
+    //region connection
+    public void ping() {
+        async.ping().get();
+    }
+    //endregion
 }

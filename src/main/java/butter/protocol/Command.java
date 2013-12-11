@@ -58,7 +58,7 @@ public class Command<T> extends AbstractFuture<T> {
 
     @Override
     public boolean set(@Nullable T value) {
-        if (!type.isInstance(value)) {
+        if (value != null && !type.isInstance(value)) {
             setException(new RedisException("wrong type reply, expected " + type + " got " + value.getClass()));
             return false;
         } else {
@@ -71,8 +71,10 @@ public class Command<T> extends AbstractFuture<T> {
         return super.setException(throwable);
     }
 
-    public void addArg(byte[] arg) {
-        args.add(arg);
+    public void addArg(byte[]... args) {
+        for (byte[] arg : args) {
+            this.args.add(arg);
+        }
     }
 
     public void encode(ByteBuf buf) {
