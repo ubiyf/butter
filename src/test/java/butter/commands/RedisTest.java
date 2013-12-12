@@ -2,6 +2,7 @@ package butter.commands;
 
 import butter.RedisClient;
 import butter.connection.SyncConnection;
+import org.junit.Before;
 import org.junit.BeforeClass;
 
 /**
@@ -15,14 +16,19 @@ public abstract class RedisTest {
     public static final String HOST = "127.0.0.1";
 
     protected static RedisClient client;
-    protected static SyncConnection connection;
+    protected static SyncConnection conn;
 
     @BeforeClass
     public static void init() throws Exception {
         client = new RedisClient(HOST, PORT);
         client.init();
-        connection = client.getSyncConnection();
-        connection.ping();
+        conn = client.getSyncConnection();
+        conn.ping();
+    }
+
+    @Before
+    public void flushDB() {
+        conn.flushAll();
     }
 
 }

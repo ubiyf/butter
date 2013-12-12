@@ -2,18 +2,19 @@ package butter.codec;
 
 import butter.exception.RedisDecodeException;
 import butter.exception.RedisException;
+import butter.protocol.Charsets;
 import butter.protocol.Command;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static butter.codec.Attribute.CMD_QUEUE;
+import static butter.util.NumberUtil.bytesToInteger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -178,83 +179,17 @@ public class ReplyDecoder extends ByteToMessageDecoder {
     private String parseStringData(ByteBuf frame) {
         byte[] stringData = new byte[frame.readableBytes()];
         frame.readBytes(stringData);
-        return new String(stringData, Charset.forName("US-ASCII"));
+        return new String(stringData, Charsets.ASCII);
     }
 
     private long parseNumberData(ByteBuf frame) {
         byte[] integerData = new byte[frame.readableBytes()];
         frame.readBytes(integerData);
-        return bytesToLong(integerData);
-    }
-
-    /**
-     * only for positive long
-     *
-     * @param b
-     */
-    private long bytesToLong(byte[] b) {
-        if (b == null) {
-            throw new NumberFormatException("null");
-        }
-
-        if (b.length == 0) {
-            throw new NumberFormatException("zero length data");
-        }
-
-        int radix = 10;
-        long result = 0;
-        boolean negative = false;
-        int i = 0, len = b.length;
-        long limit = -Long.MAX_VALUE;
-        long multmin;
-        int digit;
-
-        if (len > 0) {
-            char firstChar = (char) b[0];
-            if (firstChar < '0') { // Possible leading "+" or "-"
-                if (firstChar == '-') {
-                    negative = true;
-                    limit = Long.MIN_VALUE;
-                } else if (firstChar != '+') {
-                    throw new NumberFormatException("For input string: \"" + new String(b) + "\"");
-                }
-
-                if (len == 1) {// Cannot have lone "+" or "-"
-                    throw new NumberFormatException("For input string: \"" + new String(b) + "\"");
-                }
-                i++;
-            }
-            multmin = limit / radix;
-            while (i < len) {
-                // Accumulating negatively avoids surprises near MAX_VALUE
-                digit = Character.digit((char) b[i++], radix);
-                if (digit < 0) {
-                    throw new NumberFormatException("For input string: \"" + new String(b) + "\"");
-                }
-                if (result < multmin) {
-                    throw new NumberFormatException("For input string: \"" + new String(b) + "\"");
-                }
-                result *= radix;
-                if (result < limit + digit) {
-                    throw new NumberFormatException("For input string: \"" + new String(b) + "\"");
-                }
-                result -= digit;
-            }
-        } else {
-            throw new NumberFormatException("For input string: \"" + new String(b) + "\"");
-        }
-        return negative ? result : -result;
-    }
-
-    private void resetState() {
-        state = STATE.PREFIX;
+        return bytesToInteger(integerData);
     }
 
     enum STATE {
         PREFIX,
-        STATUS,
-        ERROR,
-        INTEGER,
         BULK,
         MULTI_BULK
     }
@@ -279,10 +214,6 @@ public class ReplyDecoder extends ByteToMessageDecoder {
 
         public List<Object> getReplies() {
             return replies;
-        }
-
-        public void setReplies(List<Object> replies) {
-            this.replies = replies;
         }
 
         public boolean isDecodeFinished() {

@@ -1,5 +1,6 @@
 package butter.misc;
 
+import butter.util.NumberUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import junit.framework.Assert;
@@ -112,5 +113,19 @@ public class MiscTest {
 //        Integer.parseInt("9999999999999");
         System.out.println(-Integer.MIN_VALUE * 10);
         System.out.println(-Integer.MAX_VALUE * 10);
+    }
+
+    @Test
+    public void testIntegerToBytes() {
+        byte[] expect1 = "12321231123".getBytes();
+        byte[] expect2 = "-12321231123".getBytes();
+        byte[] data1 = NumberUtil.integerToBytes(12321231123L);
+        byte[] data2 = NumberUtil.integerToBytes(-12321231123L);
+        for (int i = 0; i < data1.length; i++) {
+            Assert.assertEquals(expect1[i], data1[i]);
+        }
+        for (int i = 0; i < data2.length; i++) {
+            Assert.assertEquals(expect2[i], data2[i]);
+        }
     }
 }

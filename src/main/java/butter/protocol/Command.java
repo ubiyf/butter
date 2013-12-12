@@ -1,16 +1,18 @@
 package butter.protocol;
 
 import butter.exception.CommandInterruptedException;
-import butter.exception.RedisException;
 import com.google.common.util.concurrent.AbstractFuture;
 import io.netty.buffer.ByteBuf;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import static butter.util.NumberUtil.stringSize;
 
 /**
  * Created with IntelliJ IDEA.
@@ -21,16 +23,16 @@ import java.util.concurrent.TimeoutException;
 public class Command<T> extends AbstractFuture<T> {
     private static final byte[] CRLF = "\r\n".getBytes(Charsets.ASCII);
     private List<byte[]> args = new ArrayList<>();
-    private Class<T> type;
+    private Type type;
 
-    public static <T> Command<T> create(Class<T> type) {
+    public static <T> Command<T> create(Type type) {
         return new Command<>(type);
     }
 
     private Command() {
     }
 
-    private Command(Class<T> type) {
+    private Command(Type type) {
         this.type = type;
     }
 
@@ -58,13 +60,25 @@ public class Command<T> extends AbstractFuture<T> {
 
     @Override
     public boolean set(@Nullable T value) {
-        if (value != null && !type.isInstance(value)) {
-            setException(new RedisException("wrong type reply, expected " + type + " got " + value.getClass()));
-            return false;
-        } else {
-            return super.set(value);
-        }
+//        if (!isTypeSafe(value)) {
+//            setException(new RedisException("wrong type reply, expected " + type + " got " + value.getClass()));
+//            return false;
+//        } else {
+//            return super.set(value);
+//        }
+
+        return super.set(value);
     }
+
+//    private boolean isTypeSafe(T value) {
+//        if(value == null)
+//            return true;
+//        if(type == List.class) {
+//            return value.getClass().isInstance(type);
+//        }
+//
+//        return type == value.getClass();
+//    }
 
     @Override
     public boolean setException(Throwable throwable) {
@@ -119,15 +133,5 @@ public class Command<T> extends AbstractFuture<T> {
             buf.setByte(writeIdx - i - 1, (byte) ('0' + digit));
             value = value / 10;
         }
-    }
-
-    private final static int[] SIZE_TABLE = {9, 99, 999, 9999, 99999, 999999, 9999999,
-            99999999, 999999999, Integer.MAX_VALUE};
-
-    // Requires positive x
-    private static int stringSize(int x) {
-        for (int i = 0; ; i++)
-            if (x <= SIZE_TABLE[i])
-                return i + 1;
     }
 }
