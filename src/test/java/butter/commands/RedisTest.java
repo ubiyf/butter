@@ -5,6 +5,8 @@ import butter.connection.SyncConnection;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
+import static junit.framework.Assert.assertEquals;
+
 /**
  * Created with IntelliJ IDEA.
  * User: Lizhongyuan
@@ -31,4 +33,11 @@ public abstract class RedisTest {
         conn.flushAll();
     }
 
+    public void bytesEqual(byte[] expected, byte[] actual) {
+        assertEquals(expected.length, actual.length);
+
+        for (int i = 0; i < actual.length; i++) {
+            assertEquals(expected[i], actual[i]);
+        }
+    }
 }

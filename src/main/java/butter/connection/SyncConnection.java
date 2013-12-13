@@ -54,6 +54,34 @@ public class SyncConnection {
         return async.move(key, db).get();
     }
 
+    public long persist(byte[] key) {
+        return async.persist(key).get();
+    }
+
+    public long pexpire(byte[] key, long milliseconds) {
+        return async.pexpire(key, milliseconds).get();
+    }
+
+    public long pexpireAt(byte[] key, long milliseconds) {
+        return async.pexpireAt(key, milliseconds).get();
+    }
+
+    public long pttl(byte[] key) {
+        return async.pttl(key).get();
+    }
+
+    public byte[] randomKey() {
+        return async.randomKey().get();
+    }
+
+    public void rename(byte[] key, byte[] newKey) {
+        async.rename(key, newKey).get();
+    }
+
+    public long renameNX(byte[] key, byte[] newKey) {
+        return async.renameNX(key, newKey).get();
+    }
+
     public void restore(byte[] key, long ttl, byte[] serialized) {
         async.restore(key, ttl, serialized).get();
     }
@@ -61,9 +89,27 @@ public class SyncConnection {
     public long ttl(byte[] key) {
         return async.ttl(key).get();
     }
+
+    public String type(byte[] key) {
+        return async.type(key).get();
+    }
+
     //endregion
 
     //region Strings
+    public long append(byte[] key, byte[] value) {
+        return async.append(key, value).get();
+    }
+
+    public long bitCount(byte[] key) {
+        return async.bitCount(key).get();
+    }
+
+    public long bitCount(byte[] key, int start, int end) {
+        return async.bitCount(key, start, end).get();
+    }
+
+
     public void set(byte[] key, byte[] value) {
         async.set(key, value).get();
     }
@@ -76,6 +122,16 @@ public class SyncConnection {
         return async.get(key).get();
     }
     //endregion
+
+    //region Lists
+    public Long lpush(byte[] key, byte[] value) {
+        return async.lpush(key, value).get();
+    }
+    //endregion
+
+    public Long sadd(byte[] key, byte[]... member) {
+        return async.sadd(key, member).get();
+    }
 
     //region connection
     public void ping() {

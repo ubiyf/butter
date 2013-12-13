@@ -1,5 +1,7 @@
 package butter.protocol;
 
+import com.google.common.base.Charsets;
+
 /**
  * Created with IntelliJ IDEA.
  * User: Lizhongyuan
@@ -9,8 +11,8 @@ package butter.protocol;
 public enum Commands {
     //region Keys
     DEL, DUMP, EXISTS, EXPIRE, EXPIREAT, KEYS, MIGRATE, MOVE, OBJECT, PERSIST,
-    PEXPIRE, PEXPIREAT, PTTL, RANDOMKEY, RENAME, RENAMENX, RESTORE, SORT, TTL, TYPE,
-    SCAN,
+    PEXPIRE, PEXPIREAT, PTTL, RANDOMKEY, RENAME, RENAMENX, RESTORE, SCAN, SORT, TTL,
+    TYPE,
     //endregion
 
     //region Strings
@@ -66,10 +68,10 @@ public enum Commands {
     public final byte[] bytes;
 
     private Commands() {
-        this.bytes = name().getBytes(Charsets.ASCII);
+        this.bytes = name().getBytes(Charsets.US_ASCII);
     }
 
     private Commands(String command) {
-        this.bytes = command.getBytes(Charsets.ASCII);
+        this.bytes = command.getBytes(Charsets.US_ASCII);
     }
 }

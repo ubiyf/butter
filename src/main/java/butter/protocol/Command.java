@@ -1,11 +1,11 @@
 package butter.protocol;
 
 import butter.exception.CommandInterruptedException;
+import com.google.common.base.Charsets;
 import com.google.common.util.concurrent.AbstractFuture;
 import io.netty.buffer.ByteBuf;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -21,19 +21,14 @@ import static butter.util.NumberUtil.stringSize;
  * Time: 下午8:17
  */
 public class Command<T> extends AbstractFuture<T> {
-    private static final byte[] CRLF = "\r\n".getBytes(Charsets.ASCII);
+    private static final byte[] CRLF = "\r\n".getBytes(Charsets.US_ASCII);
     private List<byte[]> args = new ArrayList<>();
-    private Type type;
 
-    public static <T> Command<T> create(Type type) {
-        return new Command<>(type);
+    public static <T> Command<T> create() {
+        return new Command<>();
     }
 
     private Command() {
-    }
-
-    private Command(Type type) {
-        this.type = type;
     }
 
     @Override
@@ -60,25 +55,8 @@ public class Command<T> extends AbstractFuture<T> {
 
     @Override
     public boolean set(@Nullable T value) {
-//        if (!isTypeSafe(value)) {
-//            setException(new RedisException("wrong type reply, expected " + type + " got " + value.getClass()));
-//            return false;
-//        } else {
-//            return super.set(value);
-//        }
-
         return super.set(value);
     }
-
-//    private boolean isTypeSafe(T value) {
-//        if(value == null)
-//            return true;
-//        if(type == List.class) {
-//            return value.getClass().isInstance(type);
-//        }
-//
-//        return type == value.getClass();
-//    }
 
     @Override
     public boolean setException(Throwable throwable) {

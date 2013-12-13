@@ -2,8 +2,8 @@ package butter.codec;
 
 import butter.exception.RedisDecodeException;
 import butter.exception.RedisException;
-import butter.protocol.Charsets;
 import butter.protocol.Command;
+import com.google.common.base.Charsets;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
@@ -179,7 +179,7 @@ public class ReplyDecoder extends ByteToMessageDecoder {
     private String parseStringData(ByteBuf frame) {
         byte[] stringData = new byte[frame.readableBytes()];
         frame.readBytes(stringData);
-        return new String(stringData, Charsets.ASCII);
+        return new String(stringData, Charsets.US_ASCII);
     }
 
     private long parseNumberData(ByteBuf frame) {
