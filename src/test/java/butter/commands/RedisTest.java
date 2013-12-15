@@ -4,6 +4,8 @@ import butter.RedisClient;
 import butter.connection.SyncConnection;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.rules.ExpectedException;
 
 import static junit.framework.Assert.assertEquals;
 
@@ -19,6 +21,9 @@ public abstract class RedisTest {
 
     protected static RedisClient client;
     protected static SyncConnection conn;
+
+    @Rule
+    public ExpectedException expectedEx = ExpectedException.none();
 
     @BeforeClass
     public static void init() throws Exception {

@@ -5,6 +5,9 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import junit.framework.Assert;
 import org.junit.Test;
+import sun.misc.FloatingDecimal;
+
+import java.text.DecimalFormat;
 
 /**
  * Created with IntelliJ IDEA.
@@ -127,5 +130,12 @@ public class MiscTest {
         for (int i = 0; i < data2.length; i++) {
             Assert.assertEquals(expect2[i], data2[i]);
         }
+    }
+
+    @Test
+    public void testFloatToBytes() throws Exception {
+        double d = 3.141592654;
+        String result = "3.141592654";
+        Assert.assertEquals(result, Double.toString(d));
     }
 }

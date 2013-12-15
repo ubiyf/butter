@@ -1,5 +1,6 @@
 package butter.connection;
 
+import butter.protocol.BitOPs;
 import io.netty.channel.Channel;
 
 import java.util.List;
@@ -109,18 +110,56 @@ public class SyncConnection {
         return async.bitCount(key, start, end).get();
     }
 
-
-    public void set(byte[] key, byte[] value) {
-        async.set(key, value).get();
+    public long bitOP(BitOPs operation, byte[] destKey, byte[]... key) {
+        return async.bitOP(operation, destKey, key).get();
     }
 
-    public String mset(byte[]... pair) {
-        return async.mset(pair).get();
+    public long decr(byte[] key) {
+        return async.decr(key).get();
+    }
+
+    public long decrBy(byte[] key, long decrement) {
+        return async.decrBy(key, decrement).get();
     }
 
     public byte[] get(byte[] key) {
         return async.get(key).get();
     }
+
+    public long getBit(byte[] key, int offset) {
+        return async.getBit(key, offset).get();
+    }
+
+    public byte[] getRange(byte[] key, int start, int end) {
+        return async.getRange(key, start, end).get();
+    }
+
+    public byte[] getSet(byte[] key, byte[] value) {
+        return async.getSet(key, value).get();
+    }
+
+    public long incr(byte[] key) {
+        return async.incr(key).get();
+    }
+
+    public long incrBy(byte[] key, long increment) {
+        return async.incrBy(key, increment).get();
+    }
+
+    public void set(byte[] key, byte[] value) {
+        async.set(key, value).get();
+    }
+
+    public long setBit(byte[] key, int offset, int value) {
+        return async.setBit(key, offset, value).get();
+    }
+
+
+    public String mset(byte[]... pair) {
+        return async.mset(pair).get();
+    }
+
+
     //endregion
 
     //region Lists
