@@ -106,4 +106,9 @@ public class NumberUtil {
         return bytes;
     }
 
+    public static byte[] doubleToBytes(double d) {
+        //偷懒了 后面优化
+        return Double.toString(d).getBytes();
+    }
+
 }

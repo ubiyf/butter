@@ -146,6 +146,22 @@ public class SyncConnection {
         return async.incrBy(key, increment).get();
     }
 
+    public byte[] incrByFloat(byte[] key, double increment) {
+        return async.incrByFloat(key, increment).get();
+    }
+
+    public List<byte[]> mget(byte[]... key) {
+        return async.mget(key).get();
+    }
+
+    public long msetNX(byte[]... pair) {
+        return async.msetNX(pair).get();
+    }
+
+    public String psetEX(byte[] key, long milliseconds, byte[] value) {
+        return async.psetEX(key, milliseconds, value).get();
+    }
+
     public void set(byte[] key, byte[] value) {
         async.set(key, value).get();
     }
@@ -154,12 +170,79 @@ public class SyncConnection {
         return async.setBit(key, offset, value).get();
     }
 
+    public String setEX(byte[] key, int seconds, byte[] value) {
+        return async.setEX(key, seconds, value).get();
+    }
 
     public String mset(byte[]... pair) {
         return async.mset(pair).get();
     }
 
+    public long setNX(byte[] key, byte[] value) {
+        return async.setNX(key, value).get();
+    }
 
+    public long setRange(byte[] key, int offset, byte[] value) {
+        return async.setRange(key, offset, value).get();
+    }
+
+    public long strLen(byte[] key) {
+        return async.strLen(key).get();
+    }
+    //endregion
+
+    //region Hashes
+    public long hdel(byte[] key, byte[]... field) {
+        return async.hdel(key, field).get();
+    }
+
+    public long hexists(byte[] key, byte[] value) {
+        return async.hexists(key, value).get();
+    }
+
+    public byte[] hget(byte[] key, byte[] field) {
+        return async.hget(key, field).get();
+    }
+
+    public List<byte[]> hgetAll(byte[] key) {
+        return async.hgetAll(key).get();
+    }
+
+    public long hincrBy(byte[] key, byte[] field, long increment) {
+        return async.hincrBy(key, field, increment).get();
+    }
+
+    public byte[] hincrByFloat(byte[] key, byte[] field, double increment) {
+        return async.hincrByFloat(key, field, increment).get();
+    }
+
+    public List<byte[]> hkeys(byte[] key) {
+        return async.hkeys(key).get();
+    }
+
+    public long hlen(byte[] key) {
+        return async.hlen(key).get();
+    }
+
+    public List<byte[]> hmget(byte[] key, byte[]... field) {
+        return async.hmget(key, field).get();
+    }
+
+    public String hmset(byte[] key, byte[]... field) {
+        return async.hmset(key, field).get();
+    }
+
+    public long hset(byte[] key, byte[] field, byte[] value) {
+        return async.hset(key, field, value).get();
+    }
+
+    public long hsetNX(byte[] key, byte[] field, byte[] value) {
+        return async.hsetNX(key, field, value).get();
+    }
+
+    public List<byte[]> hvals(byte[] key) {
+        return async.hvals(key).get();
+    }
     //endregion
 
     //region Lists

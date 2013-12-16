@@ -9,6 +9,7 @@ import java.util.List;
 
 import static butter.util.Assert.notEmpty;
 import static butter.util.Assert.notNull;
+import static butter.util.NumberUtil.doubleToBytes;
 import static butter.util.NumberUtil.integerToBytes;
 
 /**
@@ -324,11 +325,44 @@ public class AsyncConnection {
         return incrBy;
     }
 
-    public Command<byte[]> incrByFloat(byte[] key, float increment) {
+    public Command<byte[]> incrByFloat(byte[] key, double increment) {
         Command<byte[]> incrByFloat = Command.create();
-        incrByFloat.addArg(Commands.INCRBYFLOAT.bytes);
+        incrByFloat.addArg(Commands.INCRBYFLOAT.bytes, key, doubleToBytes(increment));
         channel.writeAndFlush(incrByFloat);
         return incrByFloat;
+    }
+
+    public Command<List<byte[]>> mget(byte[]... key) {
+        Command<List<byte[]>> mget = Command.create();
+        mget.addArg(Commands.MGET.bytes);
+        mget.addArg(key);
+        channel.writeAndFlush(mget);
+        return mget;
+    }
+
+    public Command<String> mset(byte[]... pair) {
+        notEmpty(pair);
+
+        Command<String> mset = Command.create();
+        mset.addArg(Commands.MSET.bytes);
+        mset.addArg(pair);
+        channel.writeAndFlush(mset);
+        return mset;
+    }
+
+    public Command<Long> msetNX(byte[]... pair) {
+        Command<Long> msetNX = Command.create();
+        msetNX.addArg(Commands.MSETNX.bytes);
+        msetNX.addArg(pair);
+        channel.writeAndFlush(msetNX);
+        return msetNX;
+    }
+
+    public Command<String> psetEX(byte[] key, long milliseconds, byte[] value) {
+        Command<String> psetEX = Command.create();
+        psetEX.addArg(Commands.PSETEX.bytes, key, integerToBytes(milliseconds), value);
+        channel.writeAndFlush(psetEX);
+        return psetEX;
     }
 
     public Command<String> set(byte[] key, byte[] value) {
@@ -350,15 +384,128 @@ public class AsyncConnection {
         return setBit;
     }
 
+    public Command<String> setEX(byte[] key, int seconds, byte[] value) {
+        Command<String> setEX = Command.create();
+        setEX.addArg(Commands.SETEX.bytes, key, integerToBytes(seconds), value);
+        channel.writeAndFlush(setEX);
+        return setEX;
+    }
 
-    public Command<String> mset(byte[]... pair) {
-        notEmpty(pair);
+    public Command<Long> setNX(byte[] key, byte[] value) {
+        Command<Long> setNX = Command.create();
+        setNX.addArg(Commands.SETNX.bytes, key, value);
+        channel.writeAndFlush(setNX);
+        return setNX;
+    }
 
-        Command<String> mset = Command.create();
-        mset.addArg(Commands.MSET.bytes);
-        mset.addArg(pair);
-        channel.writeAndFlush(mset);
-        return mset;
+    public Command<Long> setRange(byte[] key, int offset, byte[] value) {
+        Command<Long> setRange = Command.create();
+        setRange.addArg(Commands.SETRANGE.bytes, key, integerToBytes(offset), value);
+        channel.writeAndFlush(setRange);
+        return setRange;
+    }
+
+    public Command<Long> strLen(byte[] key) {
+        Command<Long> strLen = Command.create();
+        strLen.addArg(Commands.STRLEN.bytes, key);
+        channel.writeAndFlush(strLen);
+        return strLen;
+    }
+    //endregion
+
+    //region Hashes
+    public Command<Long> hdel(byte[] key, byte[]... field) {
+        Command<Long> hdel = Command.create();
+        hdel.addArg(Commands.HDEL.bytes, key);
+        hdel.addArg(field);
+        channel.writeAndFlush(hdel);
+        return hdel;
+    }
+
+    public Command<Long> hexists(byte[] key, byte[] field) {
+        Command<Long> hexists = Command.create();
+        hexists.addArg(Commands.HEXISTS.bytes, key, field);
+        channel.writeAndFlush(hexists);
+        return hexists;
+    }
+
+    public Command<byte[]> hget(byte[] key, byte[] field) {
+        Command<byte[]> hget = Command.create();
+        hget.addArg(Commands.HGET.bytes, key, field);
+        channel.writeAndFlush(hget);
+        return hget;
+    }
+
+    public Command<List<byte[]>> hgetAll(byte[] key) {
+        Command<List<byte[]>> hgetAll = Command.create();
+        hgetAll.addArg(Commands.HGETALL.bytes, key);
+        channel.writeAndFlush(hgetAll);
+        return hgetAll;
+    }
+
+    public Command<Long> hincrBy(byte[] key, byte[] field, long increment) {
+        Command<Long> hincrBy = Command.create();
+        hincrBy.addArg(Commands.HINCRBY.bytes, key, field, integerToBytes(increment));
+        channel.writeAndFlush(hincrBy);
+        return hincrBy;
+    }
+
+    public Command<byte[]> hincrByFloat(byte[] key, byte[] field, double increment) {
+        Command<byte[]> hincrByFloat = Command.create();
+        hincrByFloat.addArg(Commands.HINCRBYFLOAT.bytes, key, field, doubleToBytes(increment));
+        channel.writeAndFlush(hincrByFloat);
+        return hincrByFloat;
+    }
+
+    public Command<List<byte[]>> hkeys(byte[] key) {
+        Command<List<byte[]>> hkeys = Command.create();
+        hkeys.addArg(Commands.HKEYS.bytes, key);
+        channel.writeAndFlush(hkeys);
+        return hkeys;
+    }
+
+    public Command<Long> hlen(byte[] key) {
+        Command<Long> hlen = Command.create();
+        hlen.addArg(Commands.HLEN.bytes, key);
+        channel.writeAndFlush(hlen);
+        return hlen;
+    }
+
+    public Command<List<byte[]>> hmget(byte[] key, byte[]... field) {
+        Command<List<byte[]>> hmget = Command.create();
+        hmget.addArg(Commands.HMGET.bytes, key);
+        hmget.addArg(field);
+        channel.writeAndFlush(hmget);
+        return hmget;
+    }
+
+    public Command<String> hmset(byte[] key, byte[]... pair) {
+        Command<String> hmset = Command.create();
+        hmset.addArg(Commands.HMSET.bytes, key);
+        hmset.addArg(pair);
+        channel.writeAndFlush(hmset);
+        return hmset;
+    }
+
+    public Command<Long> hset(byte[] key, byte[] field, byte[] value) {
+        Command<Long> hset = Command.create();
+        hset.addArg(Commands.HSET.bytes, key, field, value);
+        channel.writeAndFlush(hset);
+        return hset;
+    }
+
+    public Command<Long> hsetNX(byte[] key, byte[] field, byte[] value) {
+        Command<Long> hsetNX = Command.create();
+        hsetNX.addArg(Commands.HSETNX.bytes, key, field, value);
+        channel.writeAndFlush(hsetNX);
+        return hsetNX;
+    }
+
+    public Command<List<byte[]>> hvals(byte[] key) {
+        Command<List<byte[]>> hvals = Command.create();
+        hvals.addArg(Commands.HVALS.bytes, key);
+        channel.writeAndFlush(hvals);
+        return hvals;
     }
     //endregion
 

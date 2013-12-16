@@ -5,8 +5,9 @@ import butter.exception.CommandInterruptedException;
 import butter.protocol.BitOPs;
 import org.junit.Test;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNull;
+import java.util.List;
+
+import static junit.framework.Assert.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -134,11 +135,129 @@ public class StringsTest extends RedisTest {
     }
 
     @Test
+    public void testIncrByFloat() throws Exception {
+        final byte[] myKey = "mykey".getBytes();
+        conn.set(myKey, "10.50".getBytes());
+        byte[] result = conn.incrByFloat(myKey, 0.1);
+        bytesEqual("10.6".getBytes(), result);
+        conn.set(myKey, "5.0e3".getBytes());
+        result = conn.incrByFloat(myKey, 2.0e2);
+        bytesEqual("5200".getBytes(), result);
+    }
+
+    @Test
+    public void testMGet() throws Exception {
+        final byte[] key1 = "key1".getBytes();
+        final byte[] key2 = "key2".getBytes();
+        final byte[] hello = "Hello".getBytes();
+        final byte[] world = "World".getBytes();
+
+        conn.set(key1, hello);
+        conn.set(key2, world);
+
+        List<byte[]> result = conn.mget(key1, key2, "nonexisting".getBytes());
+        assertEquals(3, result.size());
+        bytesEqual(hello, result.get(0));
+        bytesEqual(world, result.get(1));
+        assertNull(result.get(2));
+    }
+
+    @Test
+    public void testMSet() throws Exception {
+        final byte[] key1 = "key1".getBytes();
+        final byte[] key2 = "key2".getBytes();
+        final byte[] hello = "Hello".getBytes();
+        final byte[] world = "World".getBytes();
+
+        conn.mset(key1, hello, key2, world);
+
+        bytesEqual(hello, conn.get(key1));
+        bytesEqual(world, conn.get(key2));
+    }
+
+    @Test
+    public void testMSetNX() throws Exception {
+        final byte[] key1 = "key1".getBytes();
+        final byte[] key2 = "key2".getBytes();
+        final byte[] key3 = "key3".getBytes();
+        final byte[] hello = "Hello".getBytes();
+        final byte[] world = "World".getBytes();
+        final byte[] three = "three".getBytes();
+
+        assertEquals(1, conn.msetNX(key1, hello, key2, three));
+        assertEquals(0, conn.msetNX(key2, three, key3, world));
+        List<byte[]> result = conn.mget(key1, key2, key3);
+        assertEquals(3, result.size());
+        bytesEqual(hello, result.get(0));
+        bytesEqual(three, result.get(1));
+        assertNull(result.get(2));
+    }
+
+    @Test
+    public void testPSetEX() throws Exception {
+        final byte[] myKey = "mykey".getBytes();
+        final byte[] hello = "Hello".getBytes();
+        conn.psetEX(myKey, 1000, hello);
+        assertTrue((conn.pttl(myKey) <= 1000));
+        bytesEqual(hello, conn.get(myKey));
+    }
+
+    @Test
+    public void testSet() throws Exception {
+        final byte[] myKey = "mykey".getBytes();
+        final byte[] hello = "Hello".getBytes();
+        conn.set(myKey, hello);
+        bytesEqual(hello, conn.get(myKey));
+    }
+
+    @Test
     public void testSetBit() throws Exception {
         final byte[] myKey = "mykey".getBytes();
         assertEquals(0, conn.setBit(myKey, 7, 1));
         assertEquals(1, conn.setBit(myKey, 7, 0));
         final byte[] result = "\u0000".getBytes();
         bytesEqual(result, conn.get(myKey));
+    }
+
+    @Test
+    public void testSetEX() throws Exception {
+        final byte[] myKey = "mykey".getBytes();
+        final byte[] hello = "Hello".getBytes();
+
+        conn.setEX(myKey, 10, hello);
+        assertTrue(conn.ttl(myKey) <= 10);
+        bytesEqual(hello, conn.get(myKey));
+    }
+
+    @Test
+    public void testSetNX() throws Exception {
+        final byte[] myKey = "mykey".getBytes();
+        final byte[] hello = "Hello".getBytes();
+        final byte[] world = "World".getBytes();
+
+        assertEquals(1, conn.setNX(myKey, hello));
+        assertEquals(0, conn.setNX(myKey, world));
+        bytesEqual(hello, conn.get(myKey));
+    }
+
+    @Test
+    public void testSetRange() throws Exception {
+        final byte[] key1 = "key1".getBytes();
+        final byte[] value = "Hello World".getBytes();
+        final byte[] result = "Hello Redis".getBytes();
+
+        conn.set(key1, value);
+        assertEquals(11, conn.setRange(key1, 6, "Redis".getBytes()));
+        bytesEqual(result, conn.get(key1));
+    }
+
+    @Test
+    public void testStrLen() throws Exception {
+        final byte[] myKey = "mykey".getBytes();
+        final byte[] value = "Hello World".getBytes();
+
+        conn.set(myKey, value);
+        assertEquals(11, conn.strLen(myKey));
+        assertEquals(0, conn.strLen("nonexisting".getBytes()));
     }
 }

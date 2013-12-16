@@ -1,6 +1,7 @@
 package butter.commands;
 
 import butter.commands.keys.KeysTest;
+import butter.commands.strings.StringsTest;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
@@ -11,6 +12,6 @@ import org.junit.runners.Suite;
  * Time: 下午6:23
  */
 @RunWith(Suite.class)
-@Suite.SuiteClasses(KeysTest.class)
+@Suite.SuiteClasses({KeysTest.class, StringsTest.class})
 public class RedisTestSuite {
 }
