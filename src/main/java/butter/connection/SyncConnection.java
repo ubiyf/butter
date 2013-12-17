@@ -1,6 +1,7 @@
 package butter.connection;
 
 import butter.protocol.BitOPs;
+import butter.protocol.InsertPos;
 import io.netty.channel.Channel;
 
 import java.util.List;
@@ -246,12 +247,76 @@ public class SyncConnection {
     //endregion
 
     //region Lists
-    public Long lpush(byte[] key, byte[] value) {
+    public List<byte[]> blpop(int timeout, byte[]... key) {
+        return async.blpop(timeout, key).get();
+    }
+
+    public List<byte[]> brpop(int timeout, byte[]... key) {
+        return async.brpop(timeout, key).get();
+    }
+
+    public byte[] brpopLPush(byte[] source, byte[] destination, int timeout) {
+        return async.brpopLPush(source, destination, timeout).get();
+    }
+
+    public byte[] lindex(byte[] key, long index) {
+        return async.lindex(key, index).get();
+    }
+
+    public long linsert(byte[] key, InsertPos pos, byte[] pivot, byte[] value) {
+        return async.linsert(key, pos, pivot, value).get();
+    }
+
+    public long llen(byte[] key) {
+        return async.llen(key).get();
+    }
+
+    public byte[] lpop(byte[] key) {
+        return async.lpop(key).get();
+    }
+
+    public long lpush(byte[] key, byte[]... value) {
         return async.lpush(key, value).get();
+    }
+
+    public long lpushX(byte[] key, byte[] value) {
+        return async.lpushX(key, value).get();
+    }
+
+    public List<byte[]> lrange(byte[] key, long start, long stop) {
+        return async.lrange(key, start, stop).get();
+    }
+
+    public long lrem(byte[] key, long count, byte[] value) {
+        return async.lrem(key, count, value).get();
+    }
+
+    public String lset(byte[] key, long index, byte[] value) {
+        return async.lset(key, index, value).get();
+    }
+
+    public String ltrim(byte[] key, long start, long stop) {
+        return async.ltrim(key, start, stop).get();
+    }
+
+    public byte[] rpop(byte[] key) {
+        return async.rpop(key).get();
+    }
+
+    public byte[] rpopLPush(byte[] source, byte[] destination) {
+        return async.rpopLPush(source, destination).get();
+    }
+
+    public long rpush(byte[] key, byte[]... value) {
+        return async.rpush(key, value).get();
+    }
+
+    public long rpushX(byte[] key, byte[] value) {
+        return async.rpushX(key, value).get();
     }
     //endregion
 
-    public Long sadd(byte[] key, byte[]... member) {
+    public long sadd(byte[] key, byte[]... member) {
         return async.sadd(key, member).get();
     }
 

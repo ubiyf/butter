@@ -3,6 +3,7 @@ package butter.connection;
 import butter.protocol.BitOPs;
 import butter.protocol.Command;
 import butter.protocol.Commands;
+import butter.protocol.InsertPos;
 import io.netty.channel.Channel;
 
 import java.util.List;
@@ -510,6 +511,59 @@ public class AsyncConnection {
     //endregion
 
     //region Lists
+    public Command<List<byte[]>> blpop(int timeout, byte[]... key) {
+        Command<List<byte[]>> blpop = Command.create();
+        blpop.addArg(Commands.BLPOP.bytes);
+        blpop.addArg(key);
+        blpop.addArg(integerToBytes(timeout));
+        channel.writeAndFlush(blpop);
+        return blpop;
+    }
+
+    public Command<List<byte[]>> brpop(int timeout, byte[]... key) {
+        Command<List<byte[]>> brpop = Command.create();
+        brpop.addArg(Commands.BRPOP.bytes);
+        brpop.addArg(key);
+        brpop.addArg(integerToBytes(timeout));
+        channel.writeAndFlush(brpop);
+        return brpop;
+    }
+
+    public Command<byte[]> brpopLPush(byte[] source, byte[] destination, int timeout) {
+        Command<byte[]> brpopLPush = Command.create();
+        brpopLPush.addArg(Commands.BRPOPLPUSH.bytes, source, destination, integerToBytes(timeout));
+        channel.writeAndFlush(brpopLPush);
+        return brpopLPush;
+    }
+
+    public Command<byte[]> lindex(byte[] key, long index) {
+        Command<byte[]> lindex = Command.create();
+        lindex.addArg(Commands.LINDEX.bytes, key, integerToBytes(index));
+        channel.writeAndFlush(lindex);
+        return lindex;
+    }
+
+    public Command<Long> linsert(byte[] key, InsertPos pos, byte[] pivot, byte[] value) {
+        Command<Long> linsert = Command.create();
+        linsert.addArg(Commands.LINSERT.bytes, key, pos.bytes, pivot, value);
+        channel.writeAndFlush(linsert);
+        return linsert;
+    }
+
+    public Command<Long> llen(byte[] key) {
+        Command<Long> llen = Command.create();
+        llen.addArg(Commands.LLEN.bytes, key);
+        channel.writeAndFlush(llen);
+        return llen;
+    }
+
+    public Command<byte[]> lpop(byte[] key) {
+        Command<byte[]> lpop = Command.create();
+        lpop.addArg(Commands.LPOP.bytes, key);
+        channel.writeAndFlush(lpop);
+        return lpop;
+    }
+
     public Command<Long> lpush(byte[] key, byte[]... value) {
         notNull(key);
         notEmpty(value);
@@ -519,6 +573,70 @@ public class AsyncConnection {
         lpush.addArg(value);
         channel.writeAndFlush(lpush);
         return lpush;
+    }
+
+    public Command<Long> lpushX(byte[] key, byte[] value) {
+        Command<Long> lpushX = Command.create();
+        lpushX.addArg(Commands.LPUSHX.bytes, key, value);
+        channel.writeAndFlush(lpushX);
+        return lpushX;
+    }
+
+    public Command<List<byte[]>> lrange(byte[] key, long start, long stop) {
+        Command<List<byte[]>> lrange = Command.create();
+        lrange.addArg(Commands.LRANGE.bytes, key, integerToBytes(start), integerToBytes(stop));
+        channel.writeAndFlush(lrange);
+        return lrange;
+    }
+
+    public Command<Long> lrem(byte[] key, long count, byte[] value) {
+        Command<Long> lrem = Command.create();
+        lrem.addArg(Commands.LREM.bytes, key, integerToBytes(count), value);
+        channel.writeAndFlush(lrem);
+        return lrem;
+    }
+
+    public Command<String> lset(byte[] key, long index, byte[] value) {
+        Command<String> lset = Command.create();
+        lset.addArg(Commands.LSET.bytes, key, integerToBytes(index), value);
+        channel.writeAndFlush(lset);
+        return lset;
+    }
+
+    public Command<String> ltrim(byte[] key, long start, long stop) {
+        Command<String> ltrim = Command.create();
+        ltrim.addArg(Commands.LTRIM.bytes, key, integerToBytes(start), integerToBytes(stop));
+        channel.writeAndFlush(ltrim);
+        return ltrim;
+    }
+
+    public Command<byte[]> rpop(byte[] key) {
+        Command<byte[]> rpop = Command.create();
+        rpop.addArg(Commands.RPOP.bytes, key);
+        channel.writeAndFlush(rpop);
+        return rpop;
+    }
+
+    public Command<byte[]> rpopLPush(byte[] source, byte[] destination) {
+        Command<byte[]> rpopLPush = Command.create();
+        rpopLPush.addArg(Commands.RPOPLPUSH.bytes, source, destination);
+        channel.writeAndFlush(rpopLPush);
+        return rpopLPush;
+    }
+
+    public Command<Long> rpush(byte[] key, byte[]... value) {
+        Command<Long> rpush = Command.create();
+        rpush.addArg(Commands.RPUSH.bytes, key);
+        rpush.addArg(value);
+        channel.writeAndFlush(rpush);
+        return rpush;
+    }
+
+    public Command<Long> rpushX(byte[] key, byte[] value) {
+        Command<Long> rpushX = Command.create();
+        rpushX.addArg(Commands.RPUSHX.bytes, key, value);
+        channel.writeAndFlush(rpushX);
+        return rpushX;
     }
     //endregion
 
