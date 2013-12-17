@@ -24,7 +24,7 @@ public class StringsTest extends RedisTest {
         final byte[] result = "Hello World".getBytes();
         assertEquals(5, conn.append(myKey, hello));
         assertEquals(11, conn.append(myKey, world));
-        bytesEqual(result, conn.get(myKey));
+        assertBytesEqual(result, conn.get(myKey));
     }
 
     @Test
@@ -51,7 +51,7 @@ public class StringsTest extends RedisTest {
         conn.set(key2, value2);
         conn.bitOP(BitOPs.AND, dest, key1, key2);
 
-        bytesEqual(result, conn.get(dest));
+        assertBytesEqual(result, conn.get(dest));
     }
 
     @Test
@@ -84,7 +84,7 @@ public class StringsTest extends RedisTest {
 
         assertNull(conn.get(nonExisting));
         conn.set(myKey, hello);
-        bytesEqual(hello, conn.get(myKey));
+        assertBytesEqual(hello, conn.get(myKey));
     }
 
     @Test
@@ -101,10 +101,10 @@ public class StringsTest extends RedisTest {
         final byte[] myKey = "mykey".getBytes();
         final byte[] value = "This is a string".getBytes();
         conn.set(myKey, value);
-        bytesEqual("This".getBytes(), conn.getRange(myKey, 0, 3));
-        bytesEqual("ing".getBytes(), conn.getRange(myKey, -3, -1));
-        bytesEqual(value, conn.getRange(myKey, 0, -1));
-        bytesEqual("string".getBytes(), conn.getRange(myKey, 10, 100));
+        assertBytesEqual("This".getBytes(), conn.getRange(myKey, 0, 3));
+        assertBytesEqual("ing".getBytes(), conn.getRange(myKey, -3, -1));
+        assertBytesEqual(value, conn.getRange(myKey, 0, -1));
+        assertBytesEqual("string".getBytes(), conn.getRange(myKey, 10, 100));
     }
 
     @Test
@@ -114,8 +114,8 @@ public class StringsTest extends RedisTest {
         final byte[] world = "World".getBytes();
 
         conn.set(myKey, hello);
-        bytesEqual(hello, conn.getSet(myKey, world));
-        bytesEqual(world, conn.get(myKey));
+        assertBytesEqual(hello, conn.getSet(myKey, world));
+        assertBytesEqual(world, conn.get(myKey));
     }
 
     @Test
@@ -123,7 +123,7 @@ public class StringsTest extends RedisTest {
         final byte[] myKey = "mykey".getBytes();
         conn.set(myKey, "10".getBytes());
         conn.incr(myKey);
-        bytesEqual("11".getBytes(), conn.get(myKey));
+        assertBytesEqual("11".getBytes(), conn.get(myKey));
     }
 
     @Test
@@ -131,7 +131,7 @@ public class StringsTest extends RedisTest {
         final byte[] myKey = "mykey".getBytes();
         conn.set(myKey, "10".getBytes());
         conn.incrBy(myKey, 5);
-        bytesEqual("15".getBytes(), conn.get(myKey));
+        assertBytesEqual("15".getBytes(), conn.get(myKey));
     }
 
     @Test
@@ -139,10 +139,10 @@ public class StringsTest extends RedisTest {
         final byte[] myKey = "mykey".getBytes();
         conn.set(myKey, "10.50".getBytes());
         byte[] result = conn.incrByFloat(myKey, 0.1);
-        bytesEqual("10.6".getBytes(), result);
+        assertBytesEqual("10.6".getBytes(), result);
         conn.set(myKey, "5.0e3".getBytes());
         result = conn.incrByFloat(myKey, 2.0e2);
-        bytesEqual("5200".getBytes(), result);
+        assertBytesEqual("5200".getBytes(), result);
     }
 
     @Test
@@ -157,8 +157,8 @@ public class StringsTest extends RedisTest {
 
         List<byte[]> result = conn.mget(key1, key2, "nonexisting".getBytes());
         assertEquals(3, result.size());
-        bytesEqual(hello, result.get(0));
-        bytesEqual(world, result.get(1));
+        assertBytesEqual(hello, result.get(0));
+        assertBytesEqual(world, result.get(1));
         assertNull(result.get(2));
     }
 
@@ -171,8 +171,8 @@ public class StringsTest extends RedisTest {
 
         conn.mset(key1, hello, key2, world);
 
-        bytesEqual(hello, conn.get(key1));
-        bytesEqual(world, conn.get(key2));
+        assertBytesEqual(hello, conn.get(key1));
+        assertBytesEqual(world, conn.get(key2));
     }
 
     @Test
@@ -188,8 +188,8 @@ public class StringsTest extends RedisTest {
         assertEquals(0, conn.msetNX(key2, three, key3, world));
         List<byte[]> result = conn.mget(key1, key2, key3);
         assertEquals(3, result.size());
-        bytesEqual(hello, result.get(0));
-        bytesEqual(three, result.get(1));
+        assertBytesEqual(hello, result.get(0));
+        assertBytesEqual(three, result.get(1));
         assertNull(result.get(2));
     }
 
@@ -199,7 +199,7 @@ public class StringsTest extends RedisTest {
         final byte[] hello = "Hello".getBytes();
         conn.psetEX(myKey, 1000, hello);
         assertTrue((conn.pttl(myKey) <= 1000));
-        bytesEqual(hello, conn.get(myKey));
+        assertBytesEqual(hello, conn.get(myKey));
     }
 
     @Test
@@ -207,7 +207,7 @@ public class StringsTest extends RedisTest {
         final byte[] myKey = "mykey".getBytes();
         final byte[] hello = "Hello".getBytes();
         conn.set(myKey, hello);
-        bytesEqual(hello, conn.get(myKey));
+        assertBytesEqual(hello, conn.get(myKey));
     }
 
     @Test
@@ -216,7 +216,7 @@ public class StringsTest extends RedisTest {
         assertEquals(0, conn.setBit(myKey, 7, 1));
         assertEquals(1, conn.setBit(myKey, 7, 0));
         final byte[] result = "\u0000".getBytes();
-        bytesEqual(result, conn.get(myKey));
+        assertBytesEqual(result, conn.get(myKey));
     }
 
     @Test
@@ -226,7 +226,7 @@ public class StringsTest extends RedisTest {
 
         conn.setEX(myKey, 10, hello);
         assertTrue(conn.ttl(myKey) <= 10);
-        bytesEqual(hello, conn.get(myKey));
+        assertBytesEqual(hello, conn.get(myKey));
     }
 
     @Test
@@ -237,7 +237,7 @@ public class StringsTest extends RedisTest {
 
         assertEquals(1, conn.setNX(myKey, hello));
         assertEquals(0, conn.setNX(myKey, world));
-        bytesEqual(hello, conn.get(myKey));
+        assertBytesEqual(hello, conn.get(myKey));
     }
 
     @Test
@@ -248,7 +248,7 @@ public class StringsTest extends RedisTest {
 
         conn.set(key1, value);
         assertEquals(11, conn.setRange(key1, 6, "Redis".getBytes()));
-        bytesEqual(result, conn.get(key1));
+        assertBytesEqual(result, conn.get(key1));
     }
 
     @Test

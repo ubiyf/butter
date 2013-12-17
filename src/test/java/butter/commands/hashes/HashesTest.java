@@ -42,7 +42,7 @@ public class HashesTest extends RedisTest {
     @Test
     public void testHGet() throws Exception {
         conn.hset(MY_HASH, FIELD1, FOO);
-        bytesEqual(FOO, conn.hget(MY_HASH, FIELD1));
+        assertBytesEqual(FOO, conn.hget(MY_HASH, FIELD1));
         assertNull(conn.hget(MY_HASH, FIELD2));
     }
 
@@ -52,10 +52,10 @@ public class HashesTest extends RedisTest {
         conn.hset(MY_HASH, FIELD2, WORLD);
 
         List<byte[]> results = conn.hgetAll(MY_HASH);
-        bytesEqual(FIELD1, results.get(0));
-        bytesEqual(HELLO, results.get(1));
-        bytesEqual(FIELD2, results.get(2));
-        bytesEqual(WORLD, results.get(3));
+        assertBytesEqual(FIELD1, results.get(0));
+        assertBytesEqual(HELLO, results.get(1));
+        assertBytesEqual(FIELD2, results.get(2));
+        assertBytesEqual(WORLD, results.get(3));
     }
 
     @Test
@@ -69,9 +69,9 @@ public class HashesTest extends RedisTest {
     @Test
     public void testHIncrByFloat() throws Exception {
         conn.hset(MY_HASH, FIELD, "10.50".getBytes());
-        bytesEqual("10.6".getBytes(), conn.hincrByFloat(MY_HASH, FIELD, 0.1));
+        assertBytesEqual("10.6".getBytes(), conn.hincrByFloat(MY_HASH, FIELD, 0.1));
         conn.hset(MY_HASH, FIELD, "5.0e3".getBytes());
-        bytesEqual("5200".getBytes(), conn.hincrByFloat(MY_HASH, FIELD, 2.0e2));
+        assertBytesEqual("5200".getBytes(), conn.hincrByFloat(MY_HASH, FIELD, 2.0e2));
     }
 
     @Test
@@ -80,8 +80,8 @@ public class HashesTest extends RedisTest {
         conn.hset(MY_HASH, FIELD2, WORLD);
 
         List<byte[]> keys = conn.hkeys(MY_HASH);
-        bytesEqual(FIELD1, keys.get(0));
-        bytesEqual(FIELD2, keys.get(1));
+        assertBytesEqual(FIELD1, keys.get(0));
+        assertBytesEqual(FIELD2, keys.get(1));
     }
 
     @Test
@@ -97,29 +97,29 @@ public class HashesTest extends RedisTest {
         conn.hset(MY_HASH, FIELD1, HELLO);
         conn.hset(MY_HASH, FIELD2, WORLD);
         List<byte[]> results = conn.hmget(MY_HASH, FIELD1, FIELD2, NO_FIELD);
-        bytesEqual(HELLO, results.get(0));
-        bytesEqual(WORLD, results.get(1));
+        assertBytesEqual(HELLO, results.get(0));
+        assertBytesEqual(WORLD, results.get(1));
         assertNull(results.get(2));
     }
 
     @Test
     public void testHMSet() throws Exception {
         conn.hmset(MY_HASH, FIELD1, HELLO, FIELD2, WORLD);
-        bytesEqual(HELLO, conn.hget(MY_HASH, FIELD1));
-        bytesEqual(WORLD, conn.hget(MY_HASH, FIELD2));
+        assertBytesEqual(HELLO, conn.hget(MY_HASH, FIELD1));
+        assertBytesEqual(WORLD, conn.hget(MY_HASH, FIELD2));
     }
 
     @Test
     public void testHSet() throws Exception {
         assertEquals(1, conn.hset(MY_HASH, FIELD1, HELLO));
-        bytesEqual(HELLO, conn.hget(MY_HASH, FIELD1));
+        assertBytesEqual(HELLO, conn.hget(MY_HASH, FIELD1));
     }
 
     @Test
     public void testHSetNX() throws Exception {
         assertEquals(1, conn.hsetNX(MY_HASH, FIELD, HELLO));
         assertEquals(0, conn.hsetNX(MY_HASH, FIELD, WORLD));
-        bytesEqual(HELLO, conn.hget(MY_HASH, FIELD));
+        assertBytesEqual(HELLO, conn.hget(MY_HASH, FIELD));
     }
 
     @Test
@@ -128,7 +128,7 @@ public class HashesTest extends RedisTest {
         conn.hset(MY_HASH, FIELD2, WORLD);
 
         List<byte[]> values = conn.hvals(MY_HASH);
-        bytesEqual(HELLO, values.get(0));
-        bytesEqual(WORLD, values.get(1));
+        assertBytesEqual(HELLO, values.get(0));
+        assertBytesEqual(WORLD, values.get(1));
     }
 }

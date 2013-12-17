@@ -651,6 +651,111 @@ public class AsyncConnection {
         channel.writeAndFlush(sadd);
         return sadd;
     }
+
+    public Command<Long> scard(byte[] key) {
+        Command<Long> scard = Command.create();
+        scard.addArg(Commands.SCARD.bytes, key);
+        channel.writeAndFlush(scard);
+        return scard;
+    }
+
+    public Command<List<byte[]>> sdiff(byte[]... key) {
+        Command<List<byte[]>> sdiff = Command.create();
+        sdiff.addArg(Commands.SDIFF.bytes);
+        sdiff.addArg(key);
+        channel.writeAndFlush(sdiff);
+        return sdiff;
+    }
+
+    public Command<Long> sdiffStore(byte[] destination, byte[]... key) {
+        Command<Long> sdiffStore = Command.create();
+        sdiffStore.addArg(Commands.SDIFFSTORE.bytes, destination);
+        sdiffStore.addArg(key);
+        channel.writeAndFlush(sdiffStore);
+        return sdiffStore;
+    }
+
+    public Command<List<byte[]>> sinter(byte[]... key) {
+        Command<List<byte[]>> sinter = Command.create();
+        sinter.addArg(Commands.SINTER.bytes);
+        sinter.addArg(key);
+        channel.writeAndFlush(sinter);
+        return sinter;
+    }
+
+    public Command<Long> sinterStore(byte[] destination, byte[]... key) {
+        Command<Long> sinterStore = Command.create();
+        sinterStore.addArg(Commands.SINTERSTORE.bytes, destination);
+        sinterStore.addArg(key);
+        channel.writeAndFlush(sinterStore);
+        return sinterStore;
+    }
+
+    public Command<Long> sisMember(byte[] key, byte[] member) {
+        Command<Long> sisMember = Command.create();
+        sisMember.addArg(Commands.SISMEMBER.bytes, key, member);
+        channel.writeAndFlush(sisMember);
+        return sisMember;
+    }
+
+    public Command<List<byte[]>> smembers(byte[] key) {
+        Command<List<byte[]>> smembers = Command.create();
+        smembers.addArg(Commands.SMEMBERS.bytes, key);
+        channel.writeAndFlush(smembers);
+        return smembers;
+    }
+
+    public Command<Long> smove(byte[] source, byte[] destination, byte[] member) {
+        Command<Long> smove = Command.create();
+        smove.addArg(Commands.SMOVE.bytes, source, destination, member);
+        channel.writeAndFlush(smove);
+        return smove;
+    }
+
+    public Command<byte[]> spop(byte[] key) {
+        Command<byte[]> spop = Command.create();
+        spop.addArg(Commands.SPOP.bytes, key);
+        channel.writeAndFlush(spop);
+        return spop;
+    }
+
+    public Command<byte[]> srandMember(byte[] key) {
+        Command<byte[]> srandMember = Command.create();
+        srandMember.addArg(Commands.SRANDMEMBER.bytes, key);
+        channel.writeAndFlush(srandMember);
+        return srandMember;
+    }
+
+    public Command<List<byte[]>> srandMember(byte[] key, long count) {
+        Command<List<byte[]>> srandMember = Command.create();
+        srandMember.addArg(Commands.SRANDMEMBER.bytes, key, integerToBytes(count));
+        channel.writeAndFlush(srandMember);
+        return srandMember;
+    }
+
+    public Command<Long> srem(byte[] key, byte[]... member) {
+        Command<Long> srem = Command.create();
+        srem.addArg(Commands.SREM.bytes, key);
+        srem.addArg(member);
+        channel.writeAndFlush(srem);
+        return srem;
+    }
+
+    public Command<List<byte[]>> sunion(byte[]... key) {
+        Command<List<byte[]>> sunion = Command.create();
+        sunion.addArg(Commands.SUNION.bytes);
+        sunion.addArg(key);
+        channel.writeAndFlush(sunion);
+        return sunion;
+    }
+
+    public Command<Long> sunionStore(byte[] destination, byte[]... key) {
+        Command<Long> sunionStore = Command.create();
+        sunionStore.addArg(Commands.SUNIONSTORE.bytes, destination);
+        sunionStore.addArg(key);
+        channel.writeAndFlush(sunionStore);
+        return sunionStore;
+    }
     //endregion
 
     //region Connection

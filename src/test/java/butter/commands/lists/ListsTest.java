@@ -33,8 +33,8 @@ public class ListsTest extends RedisTest {
         assertEquals(1, conn.lpush(MY_LIST, WORLD));
         assertEquals(2, conn.lpush(MY_LIST, HELLO));
 
-        bytesEqual(HELLO, conn.lindex(MY_LIST, 0));
-        bytesEqual(WORLD, conn.lindex(MY_LIST, -1));
+        assertBytesEqual(HELLO, conn.lindex(MY_LIST, 0));
+        assertBytesEqual(WORLD, conn.lindex(MY_LIST, -1));
         assertNull(conn.lindex(MY_LIST, 3));
     }
 
@@ -46,9 +46,9 @@ public class ListsTest extends RedisTest {
         assertEquals(3, conn.linsert(MY_LIST, InsertPos.BEFORE, WORLD, THREE));
 
         List<byte[]> results = conn.lrange(MY_LIST, 0, -1);
-        bytesEqual(HELLO, results.get(0));
-        bytesEqual(THREE, results.get(1));
-        bytesEqual(WORLD, results.get(2));
+        assertBytesEqual(HELLO, results.get(0));
+        assertBytesEqual(THREE, results.get(1));
+        assertBytesEqual(WORLD, results.get(2));
     }
 
     @Test
@@ -64,10 +64,10 @@ public class ListsTest extends RedisTest {
         conn.rpush(MY_LIST, TWO);
         conn.rpush(MY_LIST, THREE);
 
-        bytesEqual(ONE, conn.lpop(MY_LIST));
+        assertBytesEqual(ONE, conn.lpop(MY_LIST));
         List<byte[]> results = conn.lrange(MY_LIST, 0, -1);
-        bytesEqual(TWO, results.get(0));
-        bytesEqual(THREE, results.get(1));
+        assertBytesEqual(TWO, results.get(0));
+        assertBytesEqual(THREE, results.get(1));
     }
 
     @Test
@@ -75,8 +75,8 @@ public class ListsTest extends RedisTest {
         conn.lpush(MY_LIST, WORLD);
         conn.lpush(MY_LIST, HELLO);
         List<byte[]> results = conn.lrange(MY_LIST, 0, -1);
-        bytesEqual(HELLO, results.get(0));
-        bytesEqual(WORLD, results.get(1));
+        assertBytesEqual(HELLO, results.get(0));
+        assertBytesEqual(WORLD, results.get(1));
     }
 
     @Test
@@ -85,8 +85,8 @@ public class ListsTest extends RedisTest {
         assertEquals(2, conn.lpushX(MY_LIST, HELLO));
         assertEquals(0, conn.lpushX(MY_OTHER_LIST, HELLO));
         List<byte[]> results = conn.lrange(MY_LIST, 0, -1);
-        bytesEqual(HELLO, results.get(0));
-        bytesEqual(WORLD, results.get(1));
+        assertBytesEqual(HELLO, results.get(0));
+        assertBytesEqual(WORLD, results.get(1));
 
         results = conn.lrange(MY_OTHER_LIST, 0, -1);
         assertNull(results);
@@ -100,12 +100,12 @@ public class ListsTest extends RedisTest {
 
         List<byte[]> results = conn.lrange(MY_LIST, 0, 0);
         assertEquals(1, results.size());
-        bytesEqual(ONE, results.get(0));
+        assertBytesEqual(ONE, results.get(0));
 
         results = conn.lrange(MY_LIST, -3, 2);
-        bytesEqual(ONE, results.get(0));
-        bytesEqual(TWO, results.get(1));
-        bytesEqual(THREE, results.get(2));
+        assertBytesEqual(ONE, results.get(0));
+        assertBytesEqual(TWO, results.get(1));
+        assertBytesEqual(THREE, results.get(2));
 
         assertNull(conn.lrange(MY_LIST, 5, 10));
     }
@@ -121,8 +121,8 @@ public class ListsTest extends RedisTest {
 
         List<byte[]> results = conn.lrange(MY_LIST, 0, -1);
         assertEquals(2, results.size());
-        bytesEqual(HELLO, results.get(0));
-        bytesEqual("foo".getBytes(), results.get(1));
+        assertBytesEqual(HELLO, results.get(0));
+        assertBytesEqual("foo".getBytes(), results.get(1));
     }
 
     @Test
@@ -137,9 +137,9 @@ public class ListsTest extends RedisTest {
         conn.lset(MY_LIST, -2, FIVE);
         List<byte[]> results = conn.lrange(MY_LIST, 0, -1);
 
-        bytesEqual(FOUR, results.get(0));
-        bytesEqual(FIVE, results.get(1));
-        bytesEqual(THREE, results.get(2));
+        assertBytesEqual(FOUR, results.get(0));
+        assertBytesEqual(FIVE, results.get(1));
+        assertBytesEqual(THREE, results.get(2));
     }
 
     @Test
@@ -151,8 +151,8 @@ public class ListsTest extends RedisTest {
         conn.ltrim(MY_LIST, 1, -1);
         List<byte[]> results = conn.lrange(MY_LIST, 0, -1);
         assertEquals(2, results.size());
-        bytesEqual(TWO, results.get(0));
-        bytesEqual(THREE, results.get(1));
+        assertBytesEqual(TWO, results.get(0));
+        assertBytesEqual(THREE, results.get(1));
     }
 
     @Test
@@ -165,8 +165,8 @@ public class ListsTest extends RedisTest {
 
         List<byte[]> left = conn.lrange(MY_LIST, 0, -1);
         assertEquals(2, left.size());
-        bytesEqual(ONE, left.get(0));
-        bytesEqual(TWO, left.get(1));
+        assertBytesEqual(ONE, left.get(0));
+        assertBytesEqual(TWO, left.get(1));
     }
 
     @Test
@@ -175,15 +175,15 @@ public class ListsTest extends RedisTest {
         conn.rpush(MY_LIST, TWO);
         conn.rpush(MY_LIST, THREE);
 
-        bytesEqual(THREE, conn.rpopLPush(MY_LIST, MY_OTHER_LIST));
+        assertBytesEqual(THREE, conn.rpopLPush(MY_LIST, MY_OTHER_LIST));
         List<byte[]> left = conn.lrange(MY_LIST, 0, -1);
         assertEquals(2, left.size());
-        bytesEqual(ONE, left.get(0));
-        bytesEqual(TWO, left.get(1));
+        assertBytesEqual(ONE, left.get(0));
+        assertBytesEqual(TWO, left.get(1));
 
         List<byte[]> otherList = conn.lrange(MY_OTHER_LIST, 0, -1);
         assertEquals(1, otherList.size());
-        bytesEqual(THREE, otherList.get(0));
+        assertBytesEqual(THREE, otherList.get(0));
     }
 
     @Test
@@ -192,8 +192,8 @@ public class ListsTest extends RedisTest {
         conn.rpush(MY_LIST, WORLD);
 
         List<byte[]> results = conn.lrange(MY_LIST, 0, -1);
-        bytesEqual(HELLO, results.get(0));
-        bytesEqual(WORLD, results.get(1));
+        assertBytesEqual(HELLO, results.get(0));
+        assertBytesEqual(WORLD, results.get(1));
     }
 
     @Test
@@ -203,8 +203,8 @@ public class ListsTest extends RedisTest {
         conn.rpushX(MY_OTHER_LIST, WORLD);
 
         List<byte[]> results = conn.lrange(MY_LIST, 0, -1);
-        bytesEqual(HELLO, results.get(0));
-        bytesEqual(WORLD, results.get(1));
+        assertBytesEqual(HELLO, results.get(0));
+        assertBytesEqual(WORLD, results.get(1));
 
         results = conn.lrange(MY_OTHER_LIST, 0, -1);
         assertNull(results);

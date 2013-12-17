@@ -38,7 +38,7 @@ public class KeysTest extends RedisTest {
         conn.restore(key1, 0, dump);
         assertEquals(1, delNum);
         byte[] myValue = conn.get(key1);
-        bytesEqual(hello, myValue);
+        assertBytesEqual(hello, myValue);
     }
 
     @Test
@@ -94,7 +94,7 @@ public class KeysTest extends RedisTest {
         assertEquals(1, conn.move(myKey, 1));
         conn.select(1);
         byte[] myValue = conn.get(myKey);
-        bytesEqual(hello, myValue);
+        assertBytesEqual(hello, myValue);
     }
 
     @Test
@@ -148,7 +148,7 @@ public class KeysTest extends RedisTest {
 
         conn.rename(myKey, newName);
         byte[] myValue = conn.get(newName);
-        bytesEqual(hello, myValue);
+        assertBytesEqual(hello, myValue);
     }
 
     @Test
@@ -162,7 +162,7 @@ public class KeysTest extends RedisTest {
 
         assertEquals(0, conn.renameNX(myKey, myOtherKey));
         byte[] myValue = conn.get(myOtherKey);
-        bytesEqual(world, myValue);
+        assertBytesEqual(world, myValue);
     }
 
     @Test

@@ -38,11 +38,25 @@ public abstract class RedisTest {
         conn.flushAll();
     }
 
-    public void bytesEqual(byte[] expected, byte[] actual) {
+    public void assertBytesEqual(byte[] expected, byte[] actual) {
         assertEquals(expected.length, actual.length);
 
         for (int i = 0; i < actual.length; i++) {
             assertEquals(expected[i], actual[i]);
         }
+    }
+
+    public boolean isBytesEqual(byte[] expected, byte[] actual) {
+        if (expected.length != actual.length) {
+            return false;
+        }
+
+        for (int i = 0; i < actual.length; i++) {
+            if (expected[i] != actual[i]) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

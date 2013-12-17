@@ -316,9 +316,67 @@ public class SyncConnection {
     }
     //endregion
 
+    //region sets
     public long sadd(byte[] key, byte[]... member) {
         return async.sadd(key, member).get();
     }
+
+    public long scard(byte[] key) {
+        return async.scard(key).get();
+    }
+
+    public List<byte[]> sdiff(byte[]... key) {
+        return async.sdiff(key).get();
+    }
+
+    public long sdiffStore(byte[] destination, byte[]... key) {
+        return async.sdiffStore(destination, key).get();
+    }
+
+    public List<byte[]> sinter(byte[]... key) {
+        return async.sinter(key).get();
+    }
+
+    public long sinterStore(byte[] destination, byte[]... key) {
+        return async.sinterStore(destination, key).get();
+    }
+
+    public long sisMember(byte[] key, byte[] member) {
+        return async.sisMember(key, member).get();
+    }
+
+    public List<byte[]> smembers(byte[] key) {
+        return async.smembers(key).get();
+    }
+
+    public long smove(byte[] source, byte[] destination, byte[] member) {
+        return async.smove(source, destination, member).get();
+    }
+
+    public byte[] spop(byte[] key) {
+        return async.spop(key).get();
+    }
+
+    public byte[] srandMember(byte[] key) {
+        return async.srandMember(key).get();
+    }
+
+    public List<byte[]> srandMember(byte[] key, long count) {
+        return async.srandMember(key, count).get();
+    }
+
+    public long srem(byte[] key, byte[]... member) {
+        return async.srem(key, member).get();
+    }
+
+    public List<byte[]> sunion(byte[]... key) {
+        return async.sunion(key).get();
+    }
+
+    public long sunionStore(byte[] destination, byte[]... key) {
+        return async.sunionStore(destination, key).get();
+    }
+    //endregion
 
     //region connection
     public void ping() {
