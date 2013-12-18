@@ -2,6 +2,7 @@ package butter.connection;
 
 import butter.protocol.BitOPs;
 import butter.protocol.InsertPos;
+import butter.util.Pair;
 import io.netty.channel.Channel;
 
 import java.util.List;
@@ -378,9 +379,39 @@ public class SyncConnection {
     }
     //endregion
 
+    //region Sorted Sets
+    public long zadd(byte[] key, Pair<Double, byte[]>... pair) {
+        return async.zadd(key, pair).get();
+    }
+
+    public long zcard(byte[] key) {
+        return async.zcard(key).get();
+    }
+
+    public long zcount(byte[] key, byte[] min, byte[] max) {
+        return async.zcount(key, min, max).get();
+    }
+
+    public List<byte[]> zrange(byte[] key, long start, long stop, boolean withScores) {
+        return async.zrange(key, start, stop, withScores).get();
+    }
+    //endregion
+
     //region connection
+    public void auth(byte[] passwrod) {
+        async.auth(passwrod).get();
+    }
+
+    public byte[] echo(byte[] message) {
+        return async.echo(message).get();
+    }
+
     public void ping() {
         async.ping().get();
+    }
+
+    public void quit() {
+        async.quit().get();
     }
 
     public void select(int index) {

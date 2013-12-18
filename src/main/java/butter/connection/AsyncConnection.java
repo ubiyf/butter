@@ -4,6 +4,7 @@ import butter.protocol.BitOPs;
 import butter.protocol.Command;
 import butter.protocol.Commands;
 import butter.protocol.InsertPos;
+import butter.util.Pair;
 import io.netty.channel.Channel;
 
 import java.util.List;
@@ -758,12 +759,74 @@ public class AsyncConnection {
     }
     //endregion
 
+    //region Sorted Sets
+    public Command<Long> zadd(byte[] key, Pair<Double, byte[]>... pair) {
+        notNull(key);
+        notEmpty(pair);
+
+        Command<Long> zadd = Command.create();
+        zadd.addArg(Commands.ZADD.bytes, key);
+        for (int i = 0; i < pair.length; i++) {
+            zadd.addArg(doubleToBytes(pair[i].getKey()));
+            zadd.addArg(pair[i].getValue());
+        }
+        channel.writeAndFlush(zadd);
+        return zadd;
+    }
+
+    public Command<Long> zcard(byte[] key) {
+        Command<Long> zcard = Command.create();
+        zcard.addArg(Commands.ZCARD.bytes, key);
+        channel.writeAndFlush(zcard);
+        return zcard;
+    }
+
+    public Command<Long> zcount(byte[] key, byte[] min, byte[] max) {
+        Command<Long> zcount = Command.create();
+        zcount.addArg(Commands.ZCOUNT.bytes, key, min, max);
+        channel.writeAndFlush(zcount);
+        return zcount;
+    }
+
+    public Command<List<byte[]>> zrange(byte[] key, long start, long stop, boolean withScores) {
+        Command<List<byte[]>> zrange = Command.create();
+        zrange.addArg(Commands.ZRANGE.bytes, key, integerToBytes(start), integerToBytes(stop));
+        if (withScores) {
+            final byte[] WITH_SCORES = "WITHSCORES".getBytes();
+            zrange.addArg(WITH_SCORES);
+        }
+        channel.writeAndFlush(zrange);
+        return zrange;
+    }
+    //endregion
+
     //region Connection
+    public Command<String> auth(byte[] password) {
+        Command<String> auth = Command.create();
+        auth.addArg(Commands.AUTH.bytes, password);
+        channel.writeAndFlush(auth);
+        return auth;
+    }
+
+    public Command<byte[]> echo(byte[] message) {
+        Command<byte[]> echo = Command.create();
+        echo.addArg(Commands.ECHO.bytes, message);
+        channel.writeAndFlush(echo);
+        return echo;
+    }
+
     public Command<String> ping() {
         Command<String> ping = Command.create();
         ping.addArg(Commands.PING.bytes);
         channel.writeAndFlush(ping);
         return ping;
+    }
+
+    public Command<String> quit() {
+        Command<String> quit = Command.create();
+        quit.addArg(Commands.QUIT.bytes);
+        channel.writeAndFlush(quit);
+        return quit;
     }
 
     public Command<String> select(int index) {
