@@ -392,6 +392,13 @@ public class SyncConnection {
         return async.zcount(key, min, max).get();
     }
 
+    public byte[] zincrBy(byte[] key, long increment, byte[] member)
+    {
+        return async.zincrBy(key, increment, member).get();
+    }
+
+    //TODO unimplemented command zinterstore
+
     public List<byte[]> zrange(byte[] key, long start, long stop, boolean withScores) {
         return async.zrange(key, start, stop, withScores).get();
     }

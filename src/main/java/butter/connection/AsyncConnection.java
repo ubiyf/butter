@@ -788,6 +788,14 @@ public class AsyncConnection {
         return zcount;
     }
 
+    public Command<byte[]> zincrBy(byte[] key, long increment, byte[] member)
+    {
+        Command<byte[]> zincrBy = Command.create();
+        zincrBy.addArg(Commands.ZINCRBY.bytes, key, integerToBytes(increment), member);
+        channel.writeAndFlush(zincrBy);
+        return zincrBy;
+    }
+
     public Command<List<byte[]>> zrange(byte[] key, long start, long stop, boolean withScores) {
         Command<List<byte[]>> zrange = Command.create();
         zrange.addArg(Commands.ZRANGE.bytes, key, integerToBytes(start), integerToBytes(stop));

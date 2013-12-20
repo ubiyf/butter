@@ -62,4 +62,19 @@ public class ZSetsTest extends RedisTest {
         assertEquals(3, conn.zcount(MY_ZSET, "-inf".getBytes(), "+inf".getBytes()));
         assertEquals(2, conn.zcount(MY_ZSET, "(1".getBytes(), "3".getBytes()));
     }
+
+    @Test
+    public void testZIncrBy() throws Exception
+    {
+        conn.zadd(MY_ZSET, ONE_PAIR);
+        conn.zadd(MY_ZSET, TWO_PAIR);
+
+        assertEquals("3".getBytes(), conn.zincrBy(MY_ZSET, 2, ONE));
+
+        List<byte[]> results = conn.zrange(MY_ZSET, 0, -1, true);
+        assertBytesEqual(TWO, results.get(0));
+        assertBytesEqual("2".getBytes(), results.get(1));
+        assertBytesEqual(ONE, results.get(2));
+        assertBytesEqual("3".getBytes(), results.get(3));
+    }
 }
