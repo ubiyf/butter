@@ -392,15 +392,74 @@ public class SyncConnection {
         return async.zcount(key, min, max).get();
     }
 
-    public byte[] zincrBy(byte[] key, long increment, byte[] member)
-    {
+    public byte[] zincrBy(byte[] key, long increment, byte[] member) {
         return async.zincrBy(key, increment, member).get();
     }
 
-    //TODO unimplemented command zinterstore
-
     public List<byte[]> zrange(byte[] key, long start, long stop, boolean withScores) {
         return async.zrange(key, start, stop, withScores).get();
+    }
+
+    public List<byte[]> zrangeByScore(byte[] key, byte[] min, byte[] max, boolean withScores, long offset, long count) {
+        return async.zrangeByScore(key, min, max, withScores, offset, count).get();
+    }
+
+    /**
+     * @return null will be returned If member
+     * does not exist in the sorted set or key does not exist
+     */
+    public Long zrank(byte[] key, byte[] member) {
+        return async.zrank(key, member).get();
+    }
+
+    public long zrem(byte[] key, byte[]... member) {
+        return async.zrem(key, member).get();
+    }
+
+    public long zremRangeByRank(byte[] key, long start, long stop) {
+        return async.zremRangeByRank(key, start, stop).get();
+    }
+
+    public long zremRangeByScore(byte[] key, byte[] min, byte[] max) {
+        return async.zremRangeByScore(key, min, max).get();
+    }
+
+    public List<byte[]> zrevRange(byte[] key, long start, long stop, boolean withScores) {
+        return async.zrevRange(key, start, stop, withScores).get();
+    }
+
+    public List<byte[]> zrevRangeByScore(byte[] key, byte[] max, byte[] min, boolean withScores, long offset, long count) {
+        return async.zrevRangeByScore(key, max, min, withScores, offset, count).get();
+    }
+
+    public Long zrevRank(byte[] key, byte[] member) {
+        return async.zrevRank(key, member).get();
+    }
+
+    public byte[] zscore(byte[] key, byte[] member) {
+        return async.zscore(key, member).get();
+    }
+    //endregion
+
+    //region transactions
+    public void discard() {
+        async.discard().get();
+    }
+
+    public List<byte[]> exec() {
+        return async.exec().get();
+    }
+
+    public void multi() {
+        async.multi().get();
+    }
+
+    public void unwatch() {
+        async.unwatch().get();
+    }
+
+    public void watch(byte[]... key) {
+        async.watch(key).get();
     }
     //endregion
 

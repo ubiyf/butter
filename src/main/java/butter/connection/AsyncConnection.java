@@ -5,6 +5,7 @@ import butter.protocol.Command;
 import butter.protocol.Commands;
 import butter.protocol.InsertPos;
 import butter.util.Pair;
+import com.google.common.base.Charsets;
 import io.netty.channel.Channel;
 
 import java.util.List;
@@ -22,6 +23,8 @@ import static butter.util.NumberUtil.integerToBytes;
  */
 public class AsyncConnection {
 
+    private static final byte[] WITH_SCORES = "WITHSCORES".getBytes(Charsets.US_ASCII);
+    private static final byte[] LIMIT = "LIMIT".getBytes(Charsets.US_ASCII);
     private final Channel channel;
 
     public AsyncConnection(Channel channel) {
@@ -788,24 +791,152 @@ public class AsyncConnection {
         return zcount;
     }
 
-    public Command<byte[]> zincrBy(byte[] key, long increment, byte[] member)
-    {
+    public Command<byte[]> zincrBy(byte[] key, long increment, byte[] member) {
         Command<byte[]> zincrBy = Command.create();
         zincrBy.addArg(Commands.ZINCRBY.bytes, key, integerToBytes(increment), member);
         channel.writeAndFlush(zincrBy);
         return zincrBy;
     }
 
+    //TODO unimplemented command zinterstore
+
     public Command<List<byte[]>> zrange(byte[] key, long start, long stop, boolean withScores) {
         Command<List<byte[]>> zrange = Command.create();
         zrange.addArg(Commands.ZRANGE.bytes, key, integerToBytes(start), integerToBytes(stop));
         if (withScores) {
-            final byte[] WITH_SCORES = "WITHSCORES".getBytes();
             zrange.addArg(WITH_SCORES);
         }
         channel.writeAndFlush(zrange);
         return zrange;
     }
+
+    public Command<List<byte[]>> zrangeByScore(byte[] key, byte[] min, byte[] max, boolean withScores, long offset, long count) {
+        Command<List<byte[]>> zrangeByScore = Command.create();
+        zrangeByScore.addArg(Commands.ZRANGEBYSCORE.bytes, key, min, max);
+        if (withScores) {
+            zrangeByScore.addArg(WITH_SCORES);
+        }
+
+        if (offset > 0) {
+            zrangeByScore.addArg(LIMIT);
+            zrangeByScore.addArg(integerToBytes(offset), integerToBytes(count));
+        }
+        channel.writeAndFlush(zrangeByScore);
+        return zrangeByScore;
+    }
+
+    public Command<Long> zrank(byte[] key, byte[] member) {
+        Command<Long> zrank = Command.create();
+        zrank.addArg(Commands.ZRANK.bytes, key, member);
+        channel.writeAndFlush(zrank);
+        return zrank;
+    }
+
+    public Command<Long> zrem(byte[] key, byte[]... member) {
+        Command<Long> zrem = Command.create();
+        zrem.addArg(Commands.ZREM.bytes, key);
+        zrem.addArg(member);
+        channel.writeAndFlush(zrem);
+        return zrem;
+    }
+
+    public Command<Long> zremRangeByRank(byte[] key, long start, long stop) {
+        Command<Long> zremRangeByRank = Command.create();
+        zremRangeByRank.addArg(Commands.ZREMRANGEBYRANK.bytes, key, integerToBytes(start), integerToBytes(stop));
+        channel.writeAndFlush(zremRangeByRank);
+        return zremRangeByRank;
+    }
+
+    public Command<Long> zremRangeByScore(byte[] key, byte[] min, byte[] max) {
+        Command<Long> zremRangeByScore = Command.create();
+        zremRangeByScore.addArg(Commands.ZREMRANGEBYSCORE.bytes, key, min, max);
+        channel.writeAndFlush(zremRangeByScore);
+        return zremRangeByScore;
+    }
+
+    public Command<List<byte[]>> zrevRange(byte[] key, long start, long stop, boolean withScores) {
+        Command<List<byte[]>> zrevRange = Command.create();
+        zrevRange.addArg(Commands.ZREVRANGE.bytes, key, integerToBytes(start), integerToBytes(stop));
+        if (withScores) {
+            zrevRange.addArg(WITH_SCORES);
+        }
+        channel.writeAndFlush(zrevRange);
+        return zrevRange;
+    }
+
+    public Command<List<byte[]>> zrevRangeByScore(byte[] key, byte[] max, byte[] min, boolean withScores, long offset, long count) {
+        Command<List<byte[]>> zrevRangeByScore = Command.create();
+        zrevRangeByScore.addArg(Commands.ZREVRANGEBYSCORE.bytes, key, max, min);
+        if (withScores) {
+            zrevRangeByScore.addArg(WITH_SCORES);
+        }
+
+        if (offset > 0) {
+            zrevRangeByScore.addArg(integerToBytes(offset), integerToBytes(count));
+        }
+        channel.writeAndFlush(zrevRangeByScore);
+        return zrevRangeByScore;
+    }
+
+    public Command<Long> zrevRank(byte[] key, byte[] member) {
+        Command<Long> zrevRank = Command.create();
+        zrevRank.addArg(Commands.ZREVRANK.bytes, key, member);
+        channel.writeAndFlush(zrevRank);
+        return zrevRank;
+    }
+
+    //TODO unimplemented command ZSCAN
+
+    public Command<byte[]> zscore(byte[] key, byte[] member) {
+        Command<byte[]> zscore = Command.create();
+        zscore.addArg(Commands.ZSCORE.bytes, key, member);
+        channel.writeAndFlush(zscore);
+        return zscore;
+    }
+
+    //TODO unimplemented command ZUNIONSTORE
+    //endregion
+
+    //region Transactions
+    public Command<String> discard() {
+        Command<String> discard = Command.create();
+        discard.addArg(Commands.DISCARD.bytes);
+        channel.writeAndFlush(discard);
+        return discard;
+    }
+
+    public Command<List<byte[]>> exec() {
+        Command<List<byte[]>> exec = Command.create();
+        exec.addArg(Commands.EXEC.bytes);
+        channel.writeAndFlush(exec);
+        return exec;
+    }
+
+    public Command<String> multi() {
+        Command<String> multi = Command.create();
+        multi.addArg(Commands.MULTI.bytes);
+        channel.writeAndFlush(multi);
+        return multi;
+    }
+
+    public Command<String> unwatch() {
+        Command<String> unwatch = Command.create();
+        unwatch.addArg(Commands.UNWATCH.bytes);
+        channel.writeAndFlush(unwatch);
+        return unwatch;
+    }
+
+    public Command<String> watch(byte[]... key) {
+        Command<String> watch = Command.create();
+        watch.addArg(Commands.WATCH.bytes);
+        watch.addArg(key);
+        channel.writeAndFlush(watch);
+        return watch;
+    }
+    //endregion
+
+    //region scripting
+
     //endregion
 
     //region Connection
