@@ -1,6 +1,7 @@
 package butter.connection;
 
 import butter.protocol.BitOPs;
+import butter.protocol.Commands;
 import butter.protocol.InsertPos;
 import butter.util.Pair;
 import io.netty.channel.Channel;
@@ -446,7 +447,7 @@ public class SyncConnection {
         async.discard().get();
     }
 
-    public List<byte[]> exec() {
+    public List<Object> exec() {
         return async.exec().get();
     }
 
@@ -460,6 +461,34 @@ public class SyncConnection {
 
     public void watch(byte[]... key) {
         async.watch(key).get();
+    }
+    //endregion
+
+    //region scripting
+    @SuppressWarnings("unchecked")
+    public <T> T eval(byte[] script, byte[][] keys, byte[]... arg) {
+        return (T) async.eval(script, keys, arg).get();
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T evalSHA(byte[] script, byte[][] keys, byte[]... arg) {
+        return (T) async.evalSHA(script, keys, arg).get();
+    }
+
+    public List<Long> scriptExists(byte[]... script) {
+        return async.scriptExists(script).get();
+    }
+
+    public void scriptFlush() {
+        async.scriptFlush().get();
+    }
+
+    public void scriptKill() {
+        async.scriptKill().get();
+    }
+
+    public byte[] scriptLoad(byte[] script) {
+        return async.scriptLoad(script).get();
     }
     //endregion
 
@@ -486,12 +515,84 @@ public class SyncConnection {
     //endregion
 
     //region Server
-    public void flushDB() {
-        async.flushDB().get();
+    public void bgRewriteAOF() {
+        async.bgRewriteAOF().get();
+    }
+
+    public void bgSave() {
+        async.bgSave().get();
+    }
+
+    public void clientKill(byte[] hostPort) {
+        async.clientKill(hostPort).get();
+    }
+
+    public byte[] clientList() {
+        return async.clientList().get();
+    }
+
+    public byte[] clientGetName() {
+        return async.clientGetName().get();
+    }
+
+    public void clientSetName(byte[] connectionName) {
+        async.clientSetName(connectionName).get();
+    }
+
+    public List<byte[]> configGet(byte[] parameter) {
+        return async.configGet(parameter).get();
+    }
+
+    public void configRewrite() {
+        async.configRewrite().get();
+    }
+
+    public void configSet(byte[] parameter, byte[] value) {
+        async.configSet(parameter, value).get();
+    }
+
+    public void configResetStat() {
+        async.configResetStat().get();
+    }
+
+    public long dbSize() {
+        return async.dbSize().get();
     }
 
     public void flushAll() {
         async.flushAll().get();
+    }
+
+    public void flushDB() {
+        async.flushDB().get();
+    }
+
+    public byte[] info(byte[] section) {
+        return async.info(section).get();
+    }
+
+    public long lastSave() {
+        return async.lastSave().get();
+    }
+
+    public void save() {
+        async.save().get();
+    }
+
+    public void shutdown() {
+        async.shutdown().get();
+    }
+
+    public void slaveOf(byte[] host, byte[] port) {
+        async.slaveOf(host, port).get();
+    }
+
+    public List<Object> slowLog(Commands subCommand, long argument) {
+        return async.slowLog(subCommand, argument).get();
+    }
+
+    public List<byte[]> time() {
+        return async.time().get();
     }
     //endregion
 }

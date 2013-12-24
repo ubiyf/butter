@@ -25,6 +25,20 @@ public class AsyncConnection {
 
     private static final byte[] WITH_SCORES = "WITHSCORES".getBytes(Charsets.US_ASCII);
     private static final byte[] LIMIT = "LIMIT".getBytes(Charsets.US_ASCII);
+    private static final byte[] KILL = "KILL".getBytes(Charsets.US_ASCII);
+    private static final byte[] LIST = "LIST".getBytes(Charsets.US_ASCII);
+    private static final byte[] GETNAME = "GETNAME".getBytes(Charsets.US_ASCII);
+    private static final byte[] SETNAME = "SETNAME".getBytes(Charsets.US_ASCII);
+    private static final byte[] GET = "GET".getBytes(Charsets.US_ASCII);
+    private static final byte[] REWRITE = "REWRITE".getBytes(Charsets.US_ASCII);
+    private static final byte[] SET = "SET".getBytes(Charsets.US_ASCII);
+    private static final byte[] RESETSTAT = "RESETSTAT".getBytes(Charsets.US_ASCII);
+    private static final byte[] OBJECT = "OBJECT".getBytes(Charsets.US_ASCII);
+    private static final byte[] SEGFAULT = "SEGFAULT".getBytes(Charsets.US_ASCII);
+    private static final byte[] EXISTS = "EXISTS".getBytes(Charsets.US_ASCII);
+    private static final byte[] FLUSH = "FLUSH".getBytes(Charsets.US_ASCII);
+    private static final byte[] LOAD = "LOAD".getBytes(Charsets.US_ASCII);
+
     private final Channel channel;
 
     public AsyncConnection(Channel channel) {
@@ -905,8 +919,8 @@ public class AsyncConnection {
         return discard;
     }
 
-    public Command<List<byte[]>> exec() {
-        Command<List<byte[]>> exec = Command.create();
+    public Command<List<Object>> exec() {
+        Command<List<Object>> exec = Command.create();
         exec.addArg(Commands.EXEC.bytes);
         channel.writeAndFlush(exec);
         return exec;
@@ -936,7 +950,62 @@ public class AsyncConnection {
     //endregion
 
     //region scripting
+    public <T> Command<T> eval(byte[] script, byte[][] keys, byte[]... arg) {
+        Command<T> eval = Command.create();
+        eval.addArg(Commands.EVAL.bytes, script);
+        if (keys != null) {
+            eval.addArg(integerToBytes(keys.length));
+            eval.addArg(keys);
+            eval.addArg(arg);
+        } else {
+            eval.addArg(integerToBytes(0));
+        }
+        channel.writeAndFlush(eval);
+        return eval;
+    }
 
+    public <T> Command<T> evalSHA(byte[] script, byte[][] keys, byte[]... arg) {
+        Command<T> evalSHA = Command.create();
+        evalSHA.addArg(Commands.EVALSHA.bytes, script);
+        if (keys != null) {
+            evalSHA.addArg(integerToBytes(keys.length));
+            evalSHA.addArg(keys);
+            evalSHA.addArg(arg);
+        } else {
+            evalSHA.addArg(integerToBytes(0));
+        }
+        channel.writeAndFlush(evalSHA);
+        return evalSHA;
+    }
+
+    public Command<List<Long>> scriptExists(byte[]... script) {
+        Command<List<Long>> scriptExists = Command.create();
+        scriptExists.addArg(Commands.SCRIPT.bytes, EXISTS);
+        scriptExists.addArg(script);
+        channel.writeAndFlush(scriptExists);
+        return scriptExists;
+    }
+
+    public Command<String> scriptFlush() {
+        Command<String> scriptFlush = Command.create();
+        scriptFlush.addArg(Commands.SCRIPT.bytes, FLUSH);
+        channel.writeAndFlush(scriptFlush);
+        return scriptFlush;
+    }
+
+    public Command<String> scriptKill() {
+        Command<String> scriptKill = Command.create();
+        scriptKill.addArg(Commands.SCRIPT.bytes, KILL);
+        channel.writeAndFlush(scriptKill);
+        return scriptKill;
+    }
+
+    public Command<byte[]> scriptLoad(byte[] script) {
+        Command<byte[]> scriptLoad = Command.create();
+        scriptLoad.addArg(Commands.SCRIPT.bytes, LOAD, script);
+        channel.writeAndFlush(scriptLoad);
+        return scriptLoad;
+    }
     //endregion
 
     //region Connection
@@ -977,11 +1046,81 @@ public class AsyncConnection {
     //endregion
 
     //region Server
-    public Command<String> flushDB() {
-        Command<String> flushDB = Command.create();
-        flushDB.addArg(Commands.FLUSHDB.bytes);
-        channel.writeAndFlush(flushDB);
-        return flushDB;
+    public Command<String> bgRewriteAOF() {
+        Command<String> bgRewriteAOF = Command.create();
+        bgRewriteAOF.addArg(Commands.BGREWRITEAOF.bytes);
+        channel.writeAndFlush(bgRewriteAOF);
+        return bgRewriteAOF;
+    }
+
+    public Command<String> bgSave() {
+        Command<String> bgSave = Command.create();
+        bgSave.addArg(Commands.BGSAVE.bytes);
+        channel.writeAndFlush(bgSave);
+        return bgSave;
+    }
+
+    public Command<String> clientKill(byte[] hostPort) {
+        Command<String> clientKill = Command.create();
+        clientKill.addArg(Commands.CLIENT.bytes, KILL, hostPort);
+        channel.writeAndFlush(clientKill);
+        return clientKill;
+    }
+
+    public Command<byte[]> clientList() {
+        Command<byte[]> clientList = Command.create();
+        clientList.addArg(Commands.CLIENT.bytes, LIST);
+        channel.writeAndFlush(clientList);
+        return clientList;
+    }
+
+    public Command<byte[]> clientGetName() {
+        Command<byte[]> clientGetName = Command.create();
+        clientGetName.addArg(Commands.CLIENT.bytes, GETNAME);
+        channel.writeAndFlush(clientGetName);
+        return clientGetName;
+    }
+
+    public Command<String> clientSetName(byte[] connectionName) {
+        Command<String> clientSetName = Command.create();
+        clientSetName.addArg(Commands.CLIENT.bytes, SETNAME, connectionName);
+        channel.writeAndFlush(clientSetName);
+        return clientSetName;
+    }
+
+    public Command<List<byte[]>> configGet(byte[] parameter) {
+        Command<List<byte[]>> configGet = Command.create();
+        configGet.addArg(Commands.CONFIG.bytes, GET, parameter);
+        channel.writeAndFlush(configGet);
+        return configGet;
+    }
+
+    public Command<String> configRewrite() {
+        Command<String> configRewrite = Command.create();
+        configRewrite.addArg(Commands.CONFIG.bytes, REWRITE);
+        channel.writeAndFlush(configRewrite);
+        return configRewrite;
+    }
+
+    public Command<String> configSet(byte[] parameter, byte[] value) {
+        Command<String> configSet = Command.create();
+        configSet.addArg(Commands.CONFIG.bytes, SET, parameter, value);
+        channel.writeAndFlush(configSet);
+        return configSet;
+    }
+
+    public Command<String> configResetStat() {
+        Command<String> configResetStat = Command.create();
+        configResetStat.addArg(Commands.CONFIG.bytes, RESETSTAT);
+        channel.writeAndFlush(configResetStat);
+        return configResetStat;
+    }
+
+    public Command<Long> dbSize() {
+        Command<Long> dbSize = Command.create();
+        dbSize.addArg(Commands.DBSIZE.bytes);
+        channel.writeAndFlush(dbSize);
+        return dbSize;
     }
 
     public Command<String> flushAll() {
@@ -989,6 +1128,62 @@ public class AsyncConnection {
         flushAll.addArg(Commands.FLUSHALL.bytes);
         channel.writeAndFlush(flushAll);
         return flushAll;
+    }
+
+    public Command<String> flushDB() {
+        Command<String> flushDB = Command.create();
+        flushDB.addArg(Commands.FLUSHDB.bytes);
+        channel.writeAndFlush(flushDB);
+        return flushDB;
+    }
+
+    public Command<byte[]> info(byte[] section) {
+        Command<byte[]> info = Command.create();
+        info.addArg(Commands.INFO.bytes, section);
+        channel.writeAndFlush(info);
+        return info;
+    }
+
+    public Command<Long> lastSave() {
+        Command<Long> laseSave = Command.create();
+        laseSave.addArg(Commands.LASTSAVE.bytes);
+        channel.writeAndFlush(laseSave);
+        return laseSave;
+    }
+
+    public Command<String> save() {
+        Command<String> save = Command.create();
+        save.addArg(Commands.SAVE.bytes);
+        channel.writeAndFlush(save);
+        return save;
+    }
+
+    public Command<String> shutdown() {
+        Command<String> shutdown = Command.create();
+        shutdown.addArg(Commands.SHUTDOWN.bytes);
+        channel.writeAndFlush(shutdown);
+        return shutdown;
+    }
+
+    public Command<String> slaveOf(byte[] host, byte[] port) {
+        Command<String> slaveOf = Command.create();
+        slaveOf.addArg(Commands.SLAVEOF.bytes, host, port);
+        channel.writeAndFlush(slaveOf);
+        return slaveOf;
+    }
+
+    public Command<List<Object>> slowLog(Commands subCommand, long argument) {
+        Command<List<Object>> slowLog = Command.create();
+        slowLog.addArg(Commands.SLOWLOG.bytes, subCommand.bytes, integerToBytes(argument));
+        channel.writeAndFlush(slowLog);
+        return slowLog;
+    }
+
+    public Command<List<byte[]>> time() {
+        Command<List<byte[]>> time = Command.create();
+        time.addArg(Commands.TIME.bytes);
+        channel.writeAndFlush(time);
+        return time;
     }
     //endregion
 }

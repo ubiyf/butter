@@ -50,8 +50,7 @@ public enum Commands {
     //endregion
 
     //region Scripting
-    EVAL, EVALSHA, SCRIPT_EXISTS("SCRIPT EXISTS"), SCRIPT_FLUSH("SCRIPT FLUSH"), SCRIPT_KILL("SCRIPT KILL"),
-    SCRIPT_LOAD("SCRIPT LOAD"),
+    EVAL, EVALSHA, SCRIPT,
     //endregion
 
     //region Connection
@@ -59,9 +58,7 @@ public enum Commands {
     //endregion
 
     //region Server
-    BGREWRITEAOF, BGSAVE, CLIENT_KILL("CLIENT KILL"), CLIENT_LIST("CLIENT LIST"), CLIENT_GETNAME("CLIENT GETNAME"),
-    CLIENT_SETNAME("CLIENT SETNAME"), CONFIG_GET("CONFIG GET"), CONFIG_REWRITE("CONFIG REWRITE"), CONFIG_SET("CONFIG SET"),
-    CONFIG_RESETSTAT("CONFIG RESETSTAT"), DBSIZE, DEBUG_OBJECT("DEBUG OBJECT"), DEBUG_SEGFAULT("DEBUG SEGFAULT"), FLUSHALL,
+    BGREWRITEAOF, BGSAVE, CLIENT, CONFIG, DBSIZE, DEBUG, FLUSHALL,
     FLUSHDB, INFO, LASTSAVE, MONITOR, SAVE, SHUTDOWN, SLAVEOF, SLOWLOG, SYNC, TIME
     //endregion
     ;
@@ -69,9 +66,5 @@ public enum Commands {
 
     private Commands() {
         this.bytes = name().getBytes(Charsets.US_ASCII);
-    }
-
-    private Commands(String command) {
-        this.bytes = command.getBytes(Charsets.US_ASCII);
     }
 }

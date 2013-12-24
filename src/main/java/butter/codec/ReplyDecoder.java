@@ -217,7 +217,12 @@ public class ReplyDecoder extends ByteToMessageDecoder {
         }
 
         public boolean isDecodeFinished() {
-            return replyNum == replies.size();
+            if (replyNum == replies.size()) {
+                if (multiBulkStates.size() > 1) {
+
+                }
+            }
+            return false;
         }
     }
 }
