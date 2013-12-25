@@ -1,6 +1,7 @@
 package butter.commands.scripting;
 
 import butter.commands.RedisTest;
+import butter.exception.CommandInterruptedException;
 import org.junit.Test;
 
 import java.util.List;
@@ -68,8 +69,7 @@ public class ScriptingTest extends RedisTest {
 
     @Test
     public void testScriptKill() throws Exception {
-
+        expectedEx.expect(CommandInterruptedException.class);
         conn.scriptKill();
-
     }
 }

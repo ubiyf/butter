@@ -28,6 +28,8 @@ public class KeysTest extends RedisTest {
 
     @Test
     public void testDel() {
+        conn.set(KEY1, "Hello".getBytes());
+        conn.set(KEY2, "World".getBytes());
         assertEquals(2, conn.del(KEY1, KEY2, KEY3));
     }
 
@@ -133,7 +135,7 @@ public class KeysTest extends RedisTest {
     public void testRenameNX() throws Exception {
         final byte[] myOtherKey = "newName".getBytes();
         conn.set(MY_KEY, HELLO);
-        conn.set(myOtherKey, MY_KEY);
+        conn.set(myOtherKey, WORLD);
 
         assertEquals(0, conn.renameNX(MY_KEY, myOtherKey));
         byte[] myValue = conn.get(myOtherKey);
