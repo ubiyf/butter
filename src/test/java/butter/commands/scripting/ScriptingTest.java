@@ -23,22 +23,25 @@ public class ScriptingTest extends RedisTest {
     public void testEval() throws Exception {
         byte[] script = "return {KEYS[1],KEYS[2],ARGV[1],ARGV[2]}".getBytes();
         byte[][] keys = {KEY1, KEY2};
-//        List<byte[]> results = conn.eval(script, keys, "first".getBytes(), "second".getBytes());
-//
-//        assertBytesEqual(KEY1, results.get(0));
-//        assertBytesEqual(KEY2, results.get(1));
-//        assertBytesEqual(FIRST, results.get(2));
-//        assertBytesEqual(SECOND, results.get(3));
-//
-//        long intResult = conn.eval("return 10".getBytes(), null);
-//        assertEquals(10, intResult);
+        List<byte[]> results = conn.eval(script, keys, "first".getBytes(), "second".getBytes());
 
-        List<Object> listResults = conn.eval("return {1,2,{3,'Hello World!'}}".getBytes(), null);
+        assertBytesEqual(KEY1, results.get(0));
+        assertBytesEqual(KEY2, results.get(1));
+        assertBytesEqual(FIRST, results.get(2));
+        assertBytesEqual(SECOND, results.get(3));
 
-        assertEquals(1, listResults.get(0));
-        assertEquals(2, listResults.get(1));
+        long intResult = conn.eval("return 10".getBytes(), null);
+        assertEquals(10, intResult);
+
+        List<Object> listResults = conn.eval("return {1,2,{3,'Hello World!', {4, 'Hello MOTO!'}}}".getBytes(), null);
+
+        assertEquals(1, (long) listResults.get(0));
+        assertEquals(2, (long) listResults.get(1));
         List<Object> subList = (List<Object>) listResults.get(2);
-        assertEquals(3, listResults.get(0));
+        assertEquals(3, (long) subList.get(0));
         assertBytesEqual("Hello World!".getBytes(), (byte[]) subList.get(1));
+        List<Object> subSubList = (List<Object>) subList.get(2);
+        assertEquals(4, (long) subSubList.get(0));
+        assertBytesEqual("Hello MOTO!".getBytes(), (byte[]) subSubList.get(1));
     }
 }

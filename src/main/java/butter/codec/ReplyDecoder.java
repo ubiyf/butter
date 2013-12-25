@@ -173,7 +173,24 @@ public class ReplyDecoder extends ByteToMessageDecoder {
                 break;
         }
 
-        return curState.isDecodeFinished();
+        return isMultiBulkDecodeFinished();
+    }
+
+    private boolean isMultiBulkDecodeFinished() {
+        MultiBulkState top = multiBulkStates.peek();
+
+        while (top.isDecodeFinished()) {
+            if (multiBulkStates.size() > 1) {
+                multiBulkStates.pop();
+                MultiBulkState oldTop = top;
+                top = multiBulkStates.peek();
+                top.getReplies().add(oldTop.getReplies());
+            } else {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private String parseStringData(ByteBuf frame) {
@@ -217,12 +234,7 @@ public class ReplyDecoder extends ByteToMessageDecoder {
         }
 
         public boolean isDecodeFinished() {
-            if (replyNum == replies.size()) {
-                if (multiBulkStates.size() > 1) {
-
-                }
-            }
-            return false;
+            return replyNum == replies.size();
         }
     }
 }
