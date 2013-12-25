@@ -44,4 +44,32 @@ public class ScriptingTest extends RedisTest {
         assertEquals(4, (long) subSubList.get(0));
         assertBytesEqual("Hello MOTO!".getBytes(), (byte[]) subSubList.get(1));
     }
+
+    @Test
+    public void testEvalSHA() throws Exception {
+        byte[] sha = conn.scriptLoad("return 'Hello World!'".getBytes());
+        byte[] result = conn.evalSHA(sha, null);
+
+        assertBytesEqual("Hello World!".getBytes(), result);
+    }
+
+    @Test
+    public void testScriptExists() throws Exception {
+        byte[] sha = conn.scriptLoad("return 'Hello World!'".getBytes());
+        List<Long> results = conn.scriptExists(sha);
+        assertEquals(1, results.size());
+        assertEquals(1, results.get(0).longValue());
+
+        conn.scriptFlush();
+        results = conn.scriptExists(sha);
+        assertEquals(1, results.size());
+        assertEquals(0, results.get(0).longValue());
+    }
+
+    @Test
+    public void testScriptKill() throws Exception {
+
+        conn.scriptKill();
+
+    }
 }

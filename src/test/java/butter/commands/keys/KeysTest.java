@@ -15,105 +15,88 @@ import static junit.framework.Assert.assertTrue;
  * Time: 下午5:43
  */
 public class KeysTest extends RedisTest {
+    private static final byte[] KEY1 = "key1".getBytes();
+    private static final byte[] KEY2 = "key2".getBytes();
+    private static final byte[] KEY3 = "key3".getBytes();
+    private static final byte[] MY_KEY = "mykey".getBytes();
+    private static final byte[] HELLO = "Hello".getBytes();
+    private static final byte[] WORLD = "World".getBytes();
+    private static final byte[] ONE = "one".getBytes();
+    private static final byte[] TWO = "two".getBytes();
+    private static final byte[] THREE = "three".getBytes();
+    private static final byte[] FOUR = "four".getBytes();
 
     @Test
     public void testDel() {
-        final byte[] key1 = "key1".getBytes();
-        final byte[] key2 = "key2".getBytes();
-        final byte[] key3 = "key3".getBytes();
-
-        conn.set(key1, "Hello".getBytes());
-        conn.set(key2, "World".getBytes());
-
-        assertEquals(2, conn.del(key1, key2, key3));
+        assertEquals(2, conn.del(KEY1, KEY2, KEY3));
     }
 
     @Test
     public void testDump() {
-        final byte[] key1 = "key1".getBytes();
-        final byte[] hello = "Hello".getBytes();
-        conn.set(key1, hello);
-        byte[] dump = conn.dump(key1);
-        long delNum = conn.del(key1);
-        conn.restore(key1, 0, dump);
+        conn.set(KEY1, HELLO);
+        byte[] dump = conn.dump(KEY1);
+        long delNum = conn.del(KEY1);
+        conn.restore(KEY1, 0, dump);
         assertEquals(1, delNum);
-        byte[] myValue = conn.get(key1);
-        assertBytesEqual(hello, myValue);
+        byte[] myValue = conn.get(KEY1);
+        assertBytesEqual(HELLO, myValue);
     }
 
     @Test
     public void testExists() {
-        final byte[] key1 = "key1".getBytes();
-        final byte[] key2 = "key2".getBytes();
-        final byte[] hello = "Hello".getBytes();
-        conn.set(key1, hello);
-        assertEquals(1, conn.exists(key1));
-        assertEquals(0, conn.exists(key2));
+        conn.set(KEY1, HELLO);
+        assertEquals(1, conn.exists(KEY1));
+        assertEquals(0, conn.exists(KEY2));
     }
 
     @Test
     public void testExpire() {
-        final byte[] myKey = "mykey".getBytes();
-        final byte[] hello = "Hello".getBytes();
         final byte[] helloWorld = "Hello World".getBytes();
 
-        conn.set(myKey, hello);
-        conn.expire(myKey, 10);
-        assertEquals(10, conn.ttl(myKey));
-        conn.set(myKey, helloWorld);
-        assertEquals(-1, conn.ttl(myKey));
+        conn.set(MY_KEY, HELLO);
+        conn.expire(MY_KEY, 10);
+        assertEquals(10, conn.ttl(MY_KEY));
+        conn.set(MY_KEY, helloWorld);
+        assertEquals(-1, conn.ttl(MY_KEY));
     }
 
     @Test
     public void testExpireAt() {
-        final byte[] myKey = "mykey".getBytes();
-        final byte[] hello = "Hello".getBytes();
-        conn.set(myKey, hello);
-        assertEquals(1, conn.exists(myKey));
-        conn.expireAt(myKey, 1293840000);
-        assertEquals(0, conn.exists(myKey));
+        conn.set(MY_KEY, HELLO);
+        assertEquals(1, conn.exists(MY_KEY));
+        conn.expireAt(MY_KEY, 1293840000);
+        assertEquals(0, conn.exists(MY_KEY));
     }
 
     @Test
     public void testKeys() throws Exception {
-        final byte[] one = "one".getBytes();
-        final byte[] two = "two".getBytes();
-        final byte[] three = "three".getBytes();
-        final byte[] four = "four".getBytes();
-
-        conn.mset(one, "1".getBytes(), two, "2".getBytes(), three, "3".getBytes(), four, "4".getBytes());
+        conn.mset(ONE, "1".getBytes(), TWO, "2".getBytes(), THREE, "3".getBytes(), FOUR, "4".getBytes());
         List<byte[]> keys = conn.keys("*ee*".getBytes());
         assertEquals("three", new String(keys.get(0)));
     }
 
     @Test
     public void testMove() throws Exception {
-        final byte[] myKey = "mykey".getBytes();
-        final byte[] hello = "Hello".getBytes();
-        conn.set(myKey, hello);
-        assertEquals(1, conn.move(myKey, 1));
+        conn.set(MY_KEY, HELLO);
+        assertEquals(1, conn.move(MY_KEY, 1));
         conn.select(1);
-        byte[] myValue = conn.get(myKey);
-        assertBytesEqual(hello, myValue);
+        byte[] myValue = conn.get(MY_KEY);
+        assertBytesEqual(HELLO, myValue);
     }
 
     @Test
     public void testPersist() throws Exception {
-        final byte[] myKey = "mykey".getBytes();
-        final byte[] hello = "Hello".getBytes();
-        conn.set(myKey, hello);
-        conn.expire(myKey, 10);
-        assertEquals(10, conn.ttl(myKey));
-        conn.persist(myKey);
-        assertEquals(-1, conn.ttl(myKey));
+        conn.set(MY_KEY, HELLO);
+        conn.expire(MY_KEY, 10);
+        assertEquals(10, conn.ttl(MY_KEY));
+        conn.persist(MY_KEY);
+        assertEquals(-1, conn.ttl(MY_KEY));
     }
 
     @Test
     public void testPexpire() throws Exception {
-        final byte[] myKey = "mykey".getBytes();
-        final byte[] hello = "Hello".getBytes();
-        conn.set(myKey, hello);
-        conn.pexpire(myKey, 1500);
+        conn.set(MY_KEY, HELLO);
+        conn.pexpire(MY_KEY, 1500);
         //BUG in mac port redis
 //        assertEquals(1, conn.ttl(myKey));
 //        assertTrue(conn.pttl(myKey) < 1500);
@@ -121,20 +104,16 @@ public class KeysTest extends RedisTest {
 
     @Test
     public void testPexpireAt() throws Exception {
-        final byte[] myKey = "mykey".getBytes();
-        final byte[] hello = "Hello".getBytes();
-        conn.set(myKey, hello);
+        conn.set(MY_KEY, HELLO);
         long expireTime = System.currentTimeMillis() + 60 * 1000;
-        conn.pexpireAt(myKey, expireTime);
-        assertTrue(conn.ttl(myKey) <= 60);
-        assertTrue(conn.pttl(myKey) <= 60 * 1000);
+        conn.pexpireAt(MY_KEY, expireTime);
+        assertTrue(conn.ttl(MY_KEY) <= 60);
+        assertTrue(conn.pttl(MY_KEY) <= 60 * 1000);
     }
 
     @Test
     public void testRandomKey() throws Exception {
-        final byte[] myKey = "mykey".getBytes();
-        final byte[] hello = "Hello".getBytes();
-        conn.set(myKey, hello);
+        conn.set(MY_KEY, HELLO);
 
         byte[] randKey = conn.randomKey();
         assertEquals(1, conn.exists(randKey));
@@ -142,45 +121,37 @@ public class KeysTest extends RedisTest {
 
     @Test
     public void testRename() throws Exception {
-        final byte[] myKey = "mykey".getBytes();
         final byte[] newName = "newName".getBytes();
-        final byte[] hello = "Hello".getBytes();
-        conn.set(myKey, hello);
+        conn.set(MY_KEY, HELLO);
 
-        conn.rename(myKey, newName);
+        conn.rename(MY_KEY, newName);
         byte[] myValue = conn.get(newName);
-        assertBytesEqual(hello, myValue);
+        assertBytesEqual(HELLO, myValue);
     }
 
     @Test
     public void testRenameNX() throws Exception {
-        final byte[] myKey = "mykey".getBytes();
         final byte[] myOtherKey = "newName".getBytes();
-        final byte[] hello = "Hello".getBytes();
-        final byte[] world = "World".getBytes();
-        conn.set(myKey, hello);
-        conn.set(myOtherKey, world);
+        conn.set(MY_KEY, HELLO);
+        conn.set(myOtherKey, MY_KEY);
 
-        assertEquals(0, conn.renameNX(myKey, myOtherKey));
+        assertEquals(0, conn.renameNX(MY_KEY, myOtherKey));
         byte[] myValue = conn.get(myOtherKey);
-        assertBytesEqual(world, myValue);
+        assertBytesEqual(WORLD, myValue);
     }
 
     @Test
     public void testType() throws Exception {
-        final byte[] key1 = "key1".getBytes();
-        final byte[] key2 = "key2".getBytes();
-        final byte[] key3 = "key3".getBytes();
         final byte[] key4 = "key4".getBytes();
         final byte[] value = "value".getBytes();
 
-        conn.set(key1, value);
-        conn.lpush(key2, value);
-        conn.sadd(key3, value);
+        conn.set(KEY1, value);
+        conn.lpush(KEY2, value);
+        conn.sadd(KEY3, value);
 
-        assertEquals("string", conn.type(key1));
-        assertEquals("list", conn.type(key2));
-        assertEquals("set", conn.type(key3));
+        assertEquals("string", conn.type(KEY1));
+        assertEquals("list", conn.type(KEY2));
+        assertEquals("set", conn.type(KEY3));
         assertEquals("none", conn.type(key4));
     }
 }

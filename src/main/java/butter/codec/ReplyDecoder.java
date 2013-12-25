@@ -25,6 +25,7 @@ import static butter.util.NumberUtil.bytesToInteger;
 public class ReplyDecoder extends ByteToMessageDecoder {
     private STATE state = STATE.PREFIX;
     private ConcurrentLinkedQueue<Command> cmdQueue;
+    //栈的实现后面再搞 jdk的stack本身效率不高
     private Stack<MultiBulkState> multiBulkStates = new Stack<>();
 
     @Override
@@ -35,8 +36,9 @@ public class ReplyDecoder extends ByteToMessageDecoder {
 
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf frame, List<Object> objects) throws Exception {
-        if (!frame.isReadable())
+        if (!frame.isReadable()) {
             return;
+        }
 
         final boolean needMoreFrames = true;
         if (!decoder(frame)) {
@@ -178,7 +180,7 @@ public class ReplyDecoder extends ByteToMessageDecoder {
 
     private boolean isMultiBulkDecodeFinished() {
         MultiBulkState top = multiBulkStates.peek();
-
+        boolean isFinished = false;
         while (top.isDecodeFinished()) {
             if (multiBulkStates.size() > 1) {
                 multiBulkStates.pop();
@@ -186,11 +188,12 @@ public class ReplyDecoder extends ByteToMessageDecoder {
                 top = multiBulkStates.peek();
                 top.getReplies().add(oldTop.getReplies());
             } else {
-                return true;
+                isFinished = true;
+                break;
             }
         }
 
-        return false;
+        return isFinished;
     }
 
     private String parseStringData(ByteBuf frame) {
