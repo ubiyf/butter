@@ -1,4 +1,4 @@
-package butter.util;
+package butter.support;
 
 /**
  * Created with IntelliJ IDEA.

@@ -1,9 +1,9 @@
 package butter;
 
-import butter.codec.CommandEncoder;
-import butter.codec.ReplyDecoder;
 import butter.connection.AsyncConnection;
 import butter.connection.SyncConnection;
+import butter.connection.codec.CommandEncoder;
+import butter.connection.codec.ReplyDecoder;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;

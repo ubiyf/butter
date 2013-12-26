@@ -1,13 +1,10 @@
 package butter.misc;
 
-import butter.util.NumberUtil;
+import butter.support.NumberUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import junit.framework.Assert;
 import org.junit.Test;
-import sun.misc.FloatingDecimal;
-
-import java.text.DecimalFormat;
 
 /**
  * Created with IntelliJ IDEA.
@@ -122,8 +119,8 @@ public class MiscTest {
     public void testIntegerToBytes() {
         byte[] expect1 = "12321231123".getBytes();
         byte[] expect2 = "-12321231123".getBytes();
-        byte[] data1 = NumberUtil.integerToBytes(12321231123L);
-        byte[] data2 = NumberUtil.integerToBytes(-12321231123L);
+        byte[] data1 = NumberUtils.integerToBytes(12321231123L);
+        byte[] data2 = NumberUtils.integerToBytes(-12321231123L);
         for (int i = 0; i < data1.length; i++) {
             Assert.assertEquals(expect1[i], data1[i]);
         }

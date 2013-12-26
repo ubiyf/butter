@@ -1,19 +1,19 @@
 package butter.connection;
 
-import butter.protocol.BitOPs;
-import butter.protocol.Command;
-import butter.protocol.Commands;
-import butter.protocol.InsertPos;
-import butter.util.Pair;
+import butter.connection.protocol.BitOPs;
+import butter.connection.protocol.Command;
+import butter.connection.protocol.Commands;
+import butter.connection.protocol.InsertPos;
+import butter.support.Pair;
 import com.google.common.base.Charsets;
 import io.netty.channel.Channel;
 
 import java.util.List;
 
-import static butter.util.Assert.notEmpty;
-import static butter.util.Assert.notNull;
-import static butter.util.NumberUtil.doubleToBytes;
-import static butter.util.NumberUtil.integerToBytes;
+import static butter.support.Assert.notEmpty;
+import static butter.support.Assert.notNull;
+import static butter.support.NumberUtils.doubleToBytes;
+import static butter.support.NumberUtils.integerToBytes;
 
 /**
  * Created with IntelliJ IDEA.

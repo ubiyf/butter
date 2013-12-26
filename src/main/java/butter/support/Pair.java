@@ -1,4 +1,4 @@
-package butter.util;
+package butter.support;
 
 public class Pair<K, V> {
     private final K key;

@@ -1,4 +1,4 @@
-package butter.protocol;
+package butter.connection.protocol;
 
 import com.google.common.base.Charsets;
 

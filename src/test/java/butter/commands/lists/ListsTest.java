@@ -1,7 +1,7 @@
 package butter.commands.lists;
 
 import butter.commands.RedisTest;
-import butter.protocol.InsertPos;
+import butter.connection.protocol.InsertPos;
 import org.junit.Test;
 
 import java.util.List;

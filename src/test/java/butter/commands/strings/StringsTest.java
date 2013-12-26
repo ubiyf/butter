@@ -1,8 +1,8 @@
 package butter.commands.strings;
 
 import butter.commands.RedisTest;
+import butter.connection.protocol.BitOPs;
 import butter.exception.CommandInterruptedException;
-import butter.protocol.BitOPs;
 import org.junit.Test;
 
 import java.util.List;

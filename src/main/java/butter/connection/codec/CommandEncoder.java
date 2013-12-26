@@ -1,6 +1,6 @@
-package butter.codec;
+package butter.connection.codec;
 
-import butter.protocol.Command;
+import butter.connection.protocol.Command;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -8,7 +8,7 @@ import io.netty.handler.codec.MessageToByteEncoder;
 
 import java.util.Queue;
 
-import static butter.codec.Attribute.CMD_QUEUE;
+import static butter.connection.codec.Attribute.CMD_QUEUE;
 
 /**
  * Created with IntelliJ IDEA.

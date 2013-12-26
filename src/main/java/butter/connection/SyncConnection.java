@@ -1,9 +1,9 @@
 package butter.connection;
 
-import butter.protocol.BitOPs;
-import butter.protocol.Commands;
-import butter.protocol.InsertPos;
-import butter.util.Pair;
+import butter.connection.protocol.BitOPs;
+import butter.connection.protocol.Commands;
+import butter.connection.protocol.InsertPos;
+import butter.support.Pair;
 import io.netty.channel.Channel;
 
 import java.util.List;

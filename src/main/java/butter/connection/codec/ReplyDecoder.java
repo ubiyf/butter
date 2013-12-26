@@ -1,8 +1,8 @@
-package butter.codec;
+package butter.connection.codec;
 
+import butter.connection.protocol.Command;
 import butter.exception.RedisDecodeException;
 import butter.exception.RedisException;
-import butter.protocol.Command;
 import com.google.common.base.Charsets;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -13,8 +13,8 @@ import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import static butter.codec.Attribute.CMD_QUEUE;
-import static butter.util.NumberUtil.bytesToInteger;
+import static butter.connection.codec.Attribute.CMD_QUEUE;
+import static butter.support.NumberUtils.bytesToInteger;
 
 /**
  * Created with IntelliJ IDEA.

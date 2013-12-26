@@ -1,7 +1,7 @@
 package butter.commands.zsets;
 
 import butter.commands.RedisTest;
-import butter.util.Pair;
+import butter.support.Pair;
 import org.junit.Test;
 
 import java.util.List;

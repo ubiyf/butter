@@ -1,4 +1,4 @@
-package butter.protocol;
+package butter.connection.protocol;
 
 import butter.exception.CommandInterruptedException;
 import com.google.common.base.Charsets;
@@ -12,7 +12,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static butter.util.NumberUtil.stringSize;
+import static butter.support.NumberUtils.stringSize;
 
 /**
  * Created with IntelliJ IDEA.

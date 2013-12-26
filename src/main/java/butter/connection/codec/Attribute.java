@@ -1,6 +1,6 @@
-package butter.codec;
+package butter.connection.codec;
 
-import butter.protocol.Command;
+import butter.connection.protocol.Command;
 import io.netty.util.AttributeKey;
 
 import java.util.concurrent.ConcurrentLinkedQueue;

@@ -1,4 +1,4 @@
-package butter.util;
+package butter.support;
 
 /**
  * Created with IntelliJ IDEA.
@@ -6,7 +6,7 @@ package butter.util;
  * Date: 13-12-12
  * Time: 下午2:21
  */
-public class NumberUtil {
+public class NumberUtils {
 
     public static int stringSize(long x) {
         if (x == 0) {
