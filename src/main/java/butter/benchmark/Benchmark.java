@@ -3,8 +3,13 @@ package butter.benchmark;
 import butter.RedisClient;
 import butter.connection.AsyncConnection;
 import butter.connection.SyncConnection;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * Created with IntelliJ IDEA.
@@ -14,17 +19,14 @@ import org.slf4j.LoggerFactory;
  */
 public class Benchmark {
 
-    private static Logger logger = LoggerFactory.getLogger(Benchmark.class);
-    private BenchmarkConfig config;
-
-
-    public Benchmark(BenchmarkConfig config) {
-        this.config = config;
-    }
-
-    public void start() {
-        RedisClient client = new RedisClient(config.getHost(), config.getPort());
-        switch (config.getMode()) {
+    public static void start() {
+        RedisClient client = new RedisClient(BenchmarkConfig.getHost(), BenchmarkConfig.getPort());
+        try {
+            client.init();
+        } catch (Exception e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+        switch (BenchmarkConfig.getMode()) {
             case ASYNC:
                 startAsyncBenchmark(client);
                 break;
@@ -36,23 +38,93 @@ public class Benchmark {
         }
     }
 
-    private void startSyncBenchmark(RedisClient client) {
-        //TODO sync benchmark
-    }
-
-    private void startAsyncBenchmark(RedisClient client) {
+    private static void startSyncBenchmark(RedisClient client) {
         try {
-            AsyncConnection[] asyncConnections = initAsyncConnections(client, config);
+            SyncConnection[] syncConnections = initSyncConnections(client);
+            ExecutorService tPool = Executors.newFixedThreadPool(BenchmarkConfig.getThreadNum());
+            // init test thread
+
+            for (String cmd : BenchmarkConfig.getTests()) {
+                List<Future> fList = new ArrayList<>(syncConnections.length);
+                startTime = System.currentTimeMillis();
+                if (BenchmarkConfig.isThreadSafe()) {
+                    for (SyncConnection sc : syncConnections) {
+                        SyncConnTestThread testThread = new SyncConnTestThread(sc);
+                        testThread.setCmd(cmd);
+                        Future f = tPool.submit(testThread);
+                        fList.add(f);
+                    }
+                } else {
+                    for (int i = 0; i < BenchmarkConfig.getThreadNum(); i++) {
+                        SyncConnTestThread testThread = new SyncConnTestThread(syncConnections[0]);
+                        testThread.setCmd(cmd);
+                        Future f = tPool.submit(testThread);
+                        fList.add(f);
+                    }
+                }
+
+                for (Future f : fList) {
+                    try {
+                        f.get();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    }
+                }
+
+                showThroughput(cmd, syncConnections.length);
+            }
         } catch (InterruptedException e) {
-            logger.error("benchmark failed!", e);
+            System.out.println(e);
             return;
         }
 
-
+        System.exit(0);
     }
 
-    private AsyncConnection[] initAsyncConnections(RedisClient client, BenchmarkConfig config) throws InterruptedException {
-        int connectionNum = config.getConnections();
+    private static void startAsyncBenchmark(RedisClient client) {
+        try {
+            AsyncConnection[] asyncConnections = initAsyncConnections(client);
+            ExecutorService tPool = Executors.newFixedThreadPool(BenchmarkConfig.getThreadNum());
+            // init test thread
+
+            for (String cmd : BenchmarkConfig.getTests()) {
+                List<Future> fList = new ArrayList<>(asyncConnections.length);
+                startTime = System.currentTimeMillis();
+                if (BenchmarkConfig.isThreadSafe()) {
+                    for (AsyncConnection ac : asyncConnections) {
+                        AsynConnTestThread testThread = new AsynConnTestThread(ac);
+                        testThread.setCmd(cmd);
+                        Future f = tPool.submit(testThread);
+                        fList.add(f);
+                    }
+                } else {
+                    for (int i = 0; i < BenchmarkConfig.getThreadNum(); i++) {
+                        AsynConnTestThread testThread = new AsynConnTestThread(asyncConnections[0]);
+                        testThread.setCmd(cmd);
+                        Future f = tPool.submit(testThread);
+                        fList.add(f);
+                    }
+                }
+
+                for (Future f : fList) {
+                    try {
+                        f.get();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    }
+                }
+                showThroughput(cmd, asyncConnections.length);
+            }
+        } catch (InterruptedException e) {
+            System.out.println(e);
+            return;
+        }
+
+        System.exit(0);
+    }
+
+    private static AsyncConnection[] initAsyncConnections(RedisClient client) throws InterruptedException {
+        int connectionNum = BenchmarkConfig.getConnections();
         AsyncConnection[] asyncConnections = new AsyncConnection[connectionNum];
         for (int i = 0; i < connectionNum; i++) {
             asyncConnections[i] = client.getAsyncConnection();
@@ -60,8 +132,8 @@ public class Benchmark {
         return asyncConnections;
     }
 
-    private SyncConnection[] initSyncConnections(RedisClient client, BenchmarkConfig config) throws InterruptedException {
-        int connectionNum = config.getConnections();
+    private static SyncConnection[] initSyncConnections(RedisClient client) throws InterruptedException {
+        int connectionNum = BenchmarkConfig.getConnections();
         SyncConnection[] syncConnections = new SyncConnection[connectionNum];
         for (int i = 0; i < connectionNum; i++) {
             syncConnections[i] = client.getSyncConnection();
@@ -111,9 +183,7 @@ public class Benchmark {
             showUsage();
             throw e;
         }
-
-        Benchmark benchmark = new Benchmark(config);
-        benchmark.start();
+        start();
     }
 
     private static BenchmarkConfig parseConfig(String[] args) {
@@ -145,6 +215,14 @@ public class Benchmark {
         }
 
         return config;
+    }
+
+    private static long startTime;
+
+    private static void showThroughput(String cmd, int connNum) {
+        long dt = System.currentTimeMillis() - startTime;
+        double rps = (double) BenchmarkConfig.getRequests() * connNum * 1000 / dt;
+        System.out.println("Throughput of [" + cmd + "] is " + rps + "/sec");
     }
 
     private static void showUsage() {
