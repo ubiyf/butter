@@ -4,9 +4,6 @@ import butter.connection.AsyncConnection;
 import butter.connection.protocol.Command;
 
 import java.util.ArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -18,8 +15,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class AsynConnTestThread extends Thread {
 
     private final AsyncConnection aConn;
-
-    private static ExecutorService exe = Executors.newFixedThreadPool(8);
 
     private ArrayList<Command> cList = new ArrayList<>(BenchmarkConfig.getRequests());
 
@@ -52,8 +47,6 @@ public class AsynConnTestThread extends Thread {
                 break;
         }
     }
-
-    private AtomicInteger counter = new AtomicInteger();
 
     private void doLoopSet() {
         String key = "test_set_key_" + Thread.currentThread().getName();
