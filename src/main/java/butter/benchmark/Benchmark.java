@@ -175,10 +175,8 @@ public class Benchmark {
     //    fixedExecuter.shutdown();
 
     public static void main(String[] args) throws Exception {
-
-        BenchmarkConfig config;
         try {
-            config = parseConfig(args);
+            parseConfig(args);
         } catch (Exception e) {
             showUsage();
             throw e;
@@ -186,35 +184,32 @@ public class Benchmark {
         start();
     }
 
-    private static BenchmarkConfig parseConfig(String[] args) {
-        BenchmarkConfig config = new BenchmarkConfig();
+    private static void parseConfig(String[] args) {
         for (int i = 0; i < args.length; i++) {
             String arg = args[i];
             switch (arg) {
                 case "-h":
-                    config.setHost(args[++i]);
+                    BenchmarkConfig.setHost(args[++i]);
                     break;
                 case "-p":
-                    config.setPort(Integer.parseInt(args[++i]));
+                    BenchmarkConfig.setPort(Integer.parseInt(args[++i]));
                     break;
                 case "-c":
-                    config.setConnections(Integer.parseInt(args[++i]));
+                    BenchmarkConfig.setConnections(Integer.parseInt(args[++i]));
                     break;
                 case "-n":
-                    config.setRequests(Integer.parseInt(args[++i]));
+                    BenchmarkConfig.setRequests(Integer.parseInt(args[++i]));
                     break;
                 case "-d":
-                    config.setDataSize(Integer.parseInt(args[++i]));
+                    BenchmarkConfig.setDataSize(Integer.parseInt(args[++i]));
                     break;
                 case "-t":
-                    config.setTests(args[++i].split(","));
+                    BenchmarkConfig.setTests(args[++i].split(","));
                     break;
                 default:
                     showUsage();
             }
         }
-
-        return config;
     }
 
     private static long startTime;

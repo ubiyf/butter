@@ -32,7 +32,7 @@ public class BenchmarkConfig {
     private static String pwd;
     private static boolean isThreadSafe;
 
-    public BenchmarkConfig() {
+    static {
         port = DEFAULT_PORT;
         host = DEFAULT_HOST;
         requests = DEFAULT_REQUESTS;
